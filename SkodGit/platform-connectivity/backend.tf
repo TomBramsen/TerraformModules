@@ -7,8 +7,8 @@ terraform {
   }
   backend "azurerm" {
     subscription_id      = "0d7ee0d7-f9e4-4089-bcc1-f0cfeacb104c"
-    resource_group_name  = "TerraformShared"
-    storage_account_name = "terraformshared001tb"
+    resource_group_name  = "terraform"
+    storage_account_name = "terrafrom999000"
     container_name       = "state"
     key                  = "state"
   }

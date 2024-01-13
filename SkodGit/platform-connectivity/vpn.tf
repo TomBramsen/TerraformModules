@@ -28,6 +28,21 @@ resource "azurerm_vpn_site" "vpnSite" {
   }
 }
 
+
+
+resource "azurerm_vpn_site" "vpnbgp" {
+  address_cidrs       = ["10.35.228.0/24"]
+  location            = "northeurope"
+  name                = "vpn-site-lh-test-connectivity-neu"
+  resource_group_name = "rg-vwan-connectivity-neu"
+  virtual_wan_id      = "/subscriptions/0d7ee0d7-f9e4-4089-bcc1-f0cfeacb104c/resourceGroups/rg-vwan-connectivity-neu/providers/Microsoft.Network/virtualWans/vwan-01-connectivity-neu"
+  link {
+    ip_address    = "212.37.143.141"
+    name          = "vpn-link-lh-test-connectivity-neu"
+    speed_in_mbps = 100
+  }
+}
+
 resource "azurerm_vpn_gateway_connection" "vpnConnection" {
   count                        = length(var.vpn_sites)
   name                         = lower("vpn-conn-${var.vpn_sites[count.index].name}-${local.name_postfix}")
@@ -53,3 +68,27 @@ resource "azurerm_vpn_gateway_connection" "vpnConnection" {
   }
 }
 
+
+resource "azurerm_vpn_gateway_connection" "vpnConnectionBGP" {
+  name                         = "vpn-bgp"
+  vpn_gateway_id               = azurerm_vpn_gateway.vpnGateway.id
+  remote_vpn_site_id           = azurerm_vpn_site.vpnbgp.id
+  
+  vpn_link {
+    name                       = "vpn-conn-link-BGP"
+    vpn_site_link_id           = azurerm_vpn_site.vpnbgp.link[0].id
+    shared_key                 = var.vpn_sites[0].key
+    policy_based_traffic_selector_enabled = var.vpn_sites[0].policy_based_selector
+    protocol                   = "IKEv2"
+    ipsec_policy {
+      encryption_algorithm     = var.vpn_sites[0].encryption_algorithm
+      integrity_algorithm      = var.vpn_sites[0].integrity_algorithm
+      ike_encryption_algorithm = var.vpn_sites[0].ike_encryption_algorithm
+      ike_integrity_algorithm  = var.vpn_sites[0].ike_integrity_algorithm
+      dh_group                 = var.vpn_sites[0].dh_group
+      pfs_group                = var.vpn_sites[0].pfs_group
+      sa_lifetime_sec          = var.vpn_sites[0].sa_lifetime_sec
+      sa_data_size_kb          = var.vpn_sites[0].sa_data_size_kb
+   }
+  }
+}

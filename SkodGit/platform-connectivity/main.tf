@@ -77,6 +77,29 @@ resource "azurerm_virtual_hub" "vhub01" {
   tags                = var.tags
 }
 
+##
+##  Peering 
+##
+resource "azurerm_virtual_hub_connection" "peering" {
+  #for_each = { for peer in var.vwan_peerings : peer.name => peer } 
+  name                      = "wvan_peering" # each.value.name
+  virtual_hub_id            = azurerm_virtual_hub.vhub01.id
+  remote_virtual_network_id = azurerm_virtual_network.conectivityVnet.id #  " each.value.vnet_id
+  /*routing {
+    propagated_route_table {
+        # Route by direct route table for private traffic
+         # route_table_ids = [ azurerm_virtual_hub.vhub01.default_route_table_id  ]
+         # labels          = [] // [  "default"]
+
+      # Route private traffic by FW
+       route_table_ids = [ "${azurerm_virtual_hub.vhub01.id}/hubRouteTables/noneRouteTable"]
+       labels = ["none"] 
+     }
+  }
+  */
+}
+
+
 ## VM
 ##
 module "VMModule" {

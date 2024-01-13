@@ -5,6 +5,8 @@ variable "region"            { default = "neu" }
 variable "solutionName"      { default = "Connectivity" }
 variable "solutionShortName" { default = "" }
 
+
+#    address_space         = "10.52.0.0/21"
 variable "tags" {
   type = map(any)
   default = {
@@ -21,10 +23,6 @@ variable "connectivity_vnet_config" {
     address_space                = list(string)
     subnet_name                  = string
     subnet_address_prefixes      = list(string)
-    subnet_dns_inbound_name      = string
-    subnet_dns_inbound_prefixes  = list(string)
-    subnet_dns_outbound_name     = string
-    subnet_dns_outbound_prefixes = list(string)
     subnet_appgw_name            = string
     subnet_appgw_prefixes        = list(string)
     subnet_bastion_name          = string
@@ -33,17 +31,13 @@ variable "connectivity_vnet_config" {
   default = {
     rg_name                      = "rg-conn"
     name                         = "connectivity"
-    address_space                = [ "10.52.8.0/22" ]
+    address_space                = [ "10.52.4.0/22" ]
     subnet_name                  = "subnet-conn"
-    subnet_address_prefixes      = [ "10.52.8.0/24" ] 
-    subnet_dns_inbound_name      = "subnet-dns-inbound"
-    subnet_dns_inbound_prefixes  = [ "10.52.9.0/27" ] 
-    subnet_dns_outbound_name     = "subnet-dns-outbound"
-    subnet_dns_outbound_prefixes = [ "10.52.9.32/27" ]   
+    subnet_address_prefixes      = [ "10.52.4.0/24" ] 
     subnet_appgw_name            = "subnet-appGwSubnet"
-    subnet_appgw_prefixes        = [ "10.52.9.64/27" ] 
+    subnet_appgw_prefixes        = [ "10.52.5.64/27" ] 
     subnet_bastion_name          = "AzureBastionSubnet"
-    subnet_bastion_prefixes      = [ "10.52.10.0/24" ] 
+    subnet_bastion_prefixes      = [ "10.52.5.0/27" ] 
   }
 }
 
@@ -70,7 +64,7 @@ variable "vwan_hub_config" {
    })
   default = {
     name                  = "vwan-hub-01"
-    address_space         = "10.52.0.0/21"
+    address_space         = "10.52.0.0/24"
     sku                   = "Standard"
  }
 }
