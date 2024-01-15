@@ -76,9 +76,13 @@ variable "vwan_hub_config" {
 variable "vpn_config" {
   type = object({
     name              = string   
+    bgp_0_instance    = string
+    bgp_1_instance    = string
    })
   default = {
     name              = "vpn"
+    bgp_0_instance    = "169.254.21.2"
+    bgp_1_instance    = "169.254.21.6"
   }
 }
 
@@ -106,7 +110,7 @@ variable "vpn_sites" {
     {
       name                     = "LH-Test"
       remote_ip                = "212.37.143.141"
-      cidr                     = "10.35.228.0/24"
+      cidr                     = "10.35.227.0/24" # "10.35.228.0/24"
       kv_secret                = "vpn-lh-test"
       vpn_speed_mpbs           = "100"
       encryption_algorithm     = "AES256"
@@ -119,6 +123,62 @@ variable "vpn_sites" {
       sa_lifetime_sec          = 27000
       sa_data_size_kb          = 102400000
       key                      = "DHzUAp!vKiM#e5gR5EXP-NEWrwLf2023"
+    }
+  ]
+}
+
+
+
+
+##
+##  List of VPN BGP sites
+variable "vpn_sites_BGP" {
+  type = list(object({
+    name                     = string
+    remote_ip_addr0          = string
+    remote_ip_addr1          = string
+    cidr                     = string
+    kv_secret                = string
+    vpn_speed_mpbs           = string 
+    encryption_algorithm     = string
+    integrity_algorithm      = string
+    ike_encryption_algorithm = string
+    ike_integrity_algorithm  = string
+    dh_group                 = string
+    pfs_group                = string
+    sa_lifetime_sec          = number
+    sa_data_size_kb          = number
+    key                      = string
+    device_vendor            = string
+    device_model             = string
+    BGP_asn                  = string
+    BGP_peering_addr_0       = string
+    BGP_peering_addr_1       = string
+
+  }))
+    default = [ 
+    {
+      name                     = "LH-BGP"
+      remote_ip_addr0          = "212.37.143.141"
+      remote_ip_addr1          = "212.37.143.149"
+      cidr                     = "10.35.228.0/24"
+      kv_secret                = "vpn-lh-test"
+      vpn_speed_mpbs           = "100"
+      encryption_algorithm     = "AES256"
+      integrity_algorithm      = "SHA256"
+      ike_encryption_algorithm = "AES256"
+      ike_integrity_algorithm  = "SHA256"
+      dh_group                 = "DHGroup14" 
+      pfs_group                = "None" 
+      sa_lifetime_sec          = 27000
+      sa_data_size_kb          = 102400000
+      key                      = "DHzUAp!vKiM#e5gR5EXP-NEWrwLf2023"
+      device_vendor            = "Cisco"
+      device_model             = "FTD"
+      BGP_asn                  = "65001"
+      BGP_peering_addr_0       = "169.254.21.1"
+      BGP_peering_addr_1       = "169.254.21.5"
+
     }
   ]
 }
