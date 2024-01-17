@@ -7,7 +7,7 @@ resource "azurerm_vpn_gateway" "vpnGateway" {
   location                     = var.location
   resource_group_name          = azurerm_resource_group.vwanRg.name
   virtual_hub_id               = azurerm_virtual_hub.vhub01.id
-  scale_unit                   = 2
+  scale_unit                   = 4
   tags                         = var.tags
   /*
   bgp_settings {
@@ -28,6 +28,7 @@ resource "azurerm_vpn_gateway" "vpnGateway" {
 ##
 ## Set up VPN  Route/Policy based
 ##
+/*
 resource "azurerm_vpn_site" "vpnSite" {
   count                        = length(var.vpn_sites)
   name                         = lower("vpn-site-${var.vpn_sites[count.index].name}-${local.name_postfix}")
@@ -41,7 +42,7 @@ resource "azurerm_vpn_site" "vpnSite" {
     speed_in_mbps              = var.vpn_sites[count.index].vpn_speed_mpbs
   }
 }
-
+*/
 /*
 resource "azurerm_vpn_gateway_connection" "vpnConnection" {
   count                        = length(var.vpn_sites)
@@ -87,30 +88,30 @@ resource "azurerm_vpn_site" "vpnSiteBGP" {
   link {
     ip_address    = var.vpn_sites_BGP[count.index].remote_ip_addr0
     name          = lower("vpn-link-BGP1-${var.vpn_sites[count.index].name}-${local.name_postfix}")
-    speed_in_mbps =  var.vpn_sites_BGP[count.index].vpn_speed_mpbs
-  
+    speed_in_mbps = var.vpn_sites_BGP[count.index].vpn_speed_mpbs
+    provider_name = "Cisco"
     bgp {
       asn = "65001"
-      peering_address = var.vpn_sites_BGP[count.index].BGP_peering_addr_0 # peering_address = "10.52.0.12" 
-    }
+      peering_address = var.vpn_sites_BGP[count.index].BGP_peering_addr_0 
+    } 
   }
-  /*
+  
   link {
     ip_address    = var.vpn_sites_BGP[count.index].remote_ip_addr1
     name          = lower("vpn-link-BGP2-${var.vpn_sites[count.index].name}-${local.name_postfix}")
-    speed_in_mbps =  var.vpn_sites_BGP[count.index].vpn_speed_mpbs
-  
+    speed_in_mbps = var.vpn_sites_BGP[count.index].vpn_speed_mpbs
+    provider_name = "Cisco"
+   
     bgp {
       asn = "65001"
       peering_address = var.vpn_sites_BGP[count.index].BGP_peering_addr_1
     }
-  }
-  */
+  } 
 }
 
 resource "azurerm_vpn_gateway_connection" "vpnConnectionBGP" {
   count                        = length(var.vpn_sites_BGP)
-  name                         = "vpn-bgp"
+  name                         = lower("vpn-conn-bpg-${var.vpn_sites[count.index].name}-${local.name_postfix}")
   vpn_gateway_id               = azurerm_vpn_gateway.vpnGateway.id
   remote_vpn_site_id           = azurerm_vpn_site.vpnSiteBGP[count.index].id
   
@@ -120,21 +121,17 @@ resource "azurerm_vpn_gateway_connection" "vpnConnectionBGP" {
     shared_key                 = var.vpn_sites[0].key
     bgp_enabled                = true
     protocol                   = "IKEv2"
-    
-    /*
-    custom_bgp_address {
-      ip_address               = var.vpn_config.bgp_0_instance #azurerm_vpn_gateway.vpnGateway.bgp_settings[0].bgp_peering_address
-      ip_configuration_id      = azurerm_vpn_gateway.vpnGateway.bgp_settings[0].instance_0_bgp_peering_address[0].ip_configuration_id 
-    }
-    */
+
     custom_bgp_address {
       ip_address          = var.vpn_config.bgp_0_instance 
-      ip_configuration_id = "Instance0"
+      ip_configuration_id = azurerm_vpn_gateway.vpnGateway.bgp_settings[0].instance_0_bgp_peering_address[0].ip_configuration_id # = "Instance0"
     }
+    
     custom_bgp_address {
       ip_address          = var.vpn_config.bgp_1_instance 
-      ip_configuration_id = "Instance1"
-    }
+      ip_configuration_id = azurerm_vpn_gateway.vpnGateway.bgp_settings[0].instance_1_bgp_peering_address[0].ip_configuration_id #= "Instance1"
+    }  
+
     ipsec_policy {
       encryption_algorithm     = var.vpn_sites_BGP[count.index].encryption_algorithm
       integrity_algorithm      = var.vpn_sites_BGP[count.index].integrity_algorithm
@@ -147,17 +144,21 @@ resource "azurerm_vpn_gateway_connection" "vpnConnectionBGP" {
    }
   }
   
-  /*
   vpn_link {
     name                       = lower("vpn-conn-link-BGP2-${var.vpn_sites[count.index].name}-${local.name_postfix}")
-    vpn_site_link_id           = azurerm_vpn_site.vpnSiteBGP[count.index].link[0].id
+    vpn_site_link_id           = azurerm_vpn_site.vpnSiteBGP[count.index].link[1].id
     shared_key                 = var.vpn_sites[0].key
     bgp_enabled                = true
     protocol                   = "IKEv2"
-  /*  custom_bgp_address {
-      ip_address               = var.vpn_config.bgp_1_instance # "169.254.21.11" # azurerm_vpn_gateway.vpnGateway.bgp_settings[0].bgp_peering_address
-      ip_configuration_id      = azurerm_vpn_gateway.vpnGateway.bgp_settings[0].instance_1_bgp_peering_address[0].ip_configuration_id 
-      # "Instance0"
+    
+    custom_bgp_address {
+      ip_address          = var.vpn_config.bgp_0_instance 
+      ip_configuration_id = azurerm_vpn_gateway.vpnGateway.bgp_settings[0].instance_0_bgp_peering_address[0].ip_configuration_id # = "Instance0"
+    }
+    
+    custom_bgp_address {
+      ip_address          = var.vpn_config.bgp_1_instance 
+      ip_configuration_id = azurerm_vpn_gateway.vpnGateway.bgp_settings[0].instance_1_bgp_peering_address[0].ip_configuration_id #= "Instance1"
     }
     
     ipsec_policy {
@@ -171,5 +172,5 @@ resource "azurerm_vpn_gateway_connection" "vpnConnectionBGP" {
       sa_data_size_kb          = var.vpn_sites_BGP[count.index].sa_data_size_kb
    }
   }
-  */
 }
+

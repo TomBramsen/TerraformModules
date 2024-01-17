@@ -160,7 +160,7 @@ variable "vpn_sites_BGP" {
     {
       name                     = "LH-BGP"
       remote_ip_addr0          = "212.37.143.141"
-      remote_ip_addr1          = "212.37.143.149"
+      remote_ip_addr1          = "95.154.62.180"
       cidr                     = "10.35.228.0/24"
       kv_secret                = "vpn-lh-test"
       vpn_speed_mpbs           = "100"
