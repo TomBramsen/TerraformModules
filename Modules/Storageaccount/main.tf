@@ -15,6 +15,7 @@ resource "azurerm_storage_account" "storageaccount" {
   tags                            = var.tags
   public_network_access_enabled   = true
   blob_properties {
+    /*
     cors_rule {
       allowed_headers = ["*"]
       allowed_methods = ["GET","HEAD","POST","PUT"]
@@ -22,6 +23,7 @@ resource "azurerm_storage_account" "storageaccount" {
       exposed_headers = ["*"]
       max_age_in_seconds = 3600
     }
+    */
     change_feed_enabled     = "true"
     versioning_enabled      = "true"
 
@@ -37,6 +39,17 @@ resource "azurerm_storage_account" "storageaccount" {
   }
   depends_on = [ azurerm_resource_group.rg-storageaccount ]
 }
+
+
+resource "azurerm_storage_account_network_rules" "stnetrules1" {
+  storage_account_id    = azurerm_storage_account.storageaccount.id
+  default_action        = "Deny"
+  bypass                = [ "AzureServices"]
+  ip_rules              = [ "2.2.2.2", "5.186.57.1"]
+  depends_on = [ azurerm_storage_account.storageaccount ]
+}
+
+
 
 ## Create private endpoint to storage account
 
@@ -93,6 +106,7 @@ resource "azurerm_role_assignment" "accessTrifork" {
 data "azurerm_client_config" "currentSP" {
 }
 resource "azurerm_role_assignment" "keyvaultAccessGithubSP" {
+  count                   = var.useRBACauth ? 1  : 0
   scope                    = azurerm_storage_account.storageaccount.id
   role_definition_name     = "Storage Blob Data Contributor" 
   principal_id             = data.azurerm_client_config.currentSP.object_id
