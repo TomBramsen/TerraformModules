@@ -26,6 +26,23 @@ variable "create_public_Ip" {
   default = true
 }
 
+variable "userid" {
+  type = string
+  default = "azadmin"
+  description = "The default user to log on with"
+}
+
+variable "userpsw" {
+  type = string
+  default = ""
+  description = "User Password.  If left blank, random password will be used"
+}
+
+variable "storage_account_type" {
+  type = string
+  default = "Standard_LRS"
+}
+
 variable "tags" {
   type = map(any)
   default = {

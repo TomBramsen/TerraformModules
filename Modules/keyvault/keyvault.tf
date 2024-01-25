@@ -1,3 +1,6 @@
+module "Global_Constants" {
+   source = "../Global_Constants"
+}
 
 resource "azurerm_resource_group" "rg-keyvault" {
   count                   = var.create_rg_group ? 1  : 0
@@ -8,7 +11,7 @@ resource "azurerm_resource_group" "rg-keyvault" {
 data "azurerm_client_config" "currenttenant" {}
 
 resource "azurerm_key_vault" "keyvault" {
-   name                       = var.keyvaultName
+   name                       = var.name
    location                   = var.location
    resource_group_name        = var.rg_name
    tenant_id                  = "${data.azurerm_client_config.currenttenant.tenant_id}"
@@ -16,9 +19,15 @@ resource "azurerm_key_vault" "keyvault" {
    sku_name                   = var.sku
    tags                       = var.tags 
    purge_protection_enabled   = var.purge_protection
-   depends_on = [ azurerm_resource_group.rg-keyvault ]
-}
 
+   network_acls {
+      bypass         = "AzureServices"
+      default_action = "Deny"
+      ip_rules       = module.Global_Constants.IP_Whitelist
+  }
+
+  depends_on = [ azurerm_resource_group.rg-keyvault ]
+}
 
 ##
 ## Give access to Keyvault
@@ -27,7 +36,7 @@ resource "azurerm_key_vault" "keyvault" {
 resource "azurerm_role_assignment" "keyvaultAccessTrifork" {
    scope                      = azurerm_key_vault.keyvault.id
    role_definition_name       = "Key Vault Secrets User" 
-   principal_id               = "65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
+   principal_id               = module.Global_Constants.AADGroup_Read_access_all # "65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
 }
 
 ## The Github SP gets access to update secrets
@@ -53,10 +62,9 @@ resource "azurerm_key_vault_secret" "secrets" {
    for_each                   = var.secrets
    name                       = each.key
    value                      = each.value
-   key_vault_id               = module.keyvault.keyvault_id
+   key_vault_id               = azurerm_key_vault.keyvault.id
    depends_on                 = [ azurerm_key_vault.keyvault ]
 }
-
 
 ## Return id of keyvault
 output "keyvault_id" {

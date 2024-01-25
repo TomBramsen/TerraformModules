@@ -1,3 +1,7 @@
+module "Global_Constants" {
+   source = "../Global_Constants"
+}
+
 resource "azurerm_resource_group" "rg-storageaccount" {
   count                   = var.create_rg_group ? 1  : 0
   name                    = var.rg_name
@@ -5,7 +9,7 @@ resource "azurerm_resource_group" "rg-storageaccount" {
 }
 
 resource "azurerm_storage_account" "storageaccount" {
-  name                            = var.sa_name
+  name                            = var.name
   resource_group_name             = var.rg_name
   location                        = var.location
   account_tier                    = var.account_tier
@@ -45,7 +49,7 @@ resource "azurerm_storage_account_network_rules" "stnetrules1" {
   storage_account_id    = azurerm_storage_account.storageaccount.id
   default_action        = "Deny"
   bypass                = [ "AzureServices"]
-  ip_rules              = [ "2.2.2.2", "5.186.57.1"]
+  ip_rules              = module.Global_Constants.IP_Whitelist
   depends_on = [ azurerm_storage_account.storageaccount ]
 }
 
@@ -58,19 +62,19 @@ resource "azurerm_storage_account_network_rules" "stnetrules1" {
 ##
 resource "azurerm_private_endpoint" "StorageAccountEndpoint" {
   count               = var.createPrivateEndpoint ? 1  : 0
-  name                = "endpoint-${var.sa_name}"
+  name                = "endpoint-${var.name}"
   location            = var.location
   resource_group_name = var.rg_name
   subnet_id           = var.privateEndpointSubnet
 
   private_service_connection {
-    name                           = "sc-${var.sa_name}"
+    name                           = "sc-${var.name}"
     private_connection_resource_id = azurerm_storage_account.storageaccount.id
     is_manual_connection           = false
     subresource_names              = ["blob"]
   }
   ip_configuration {
-    name                   = "ip-${var.sa_name}"
+    name                   = "ip-${var.name}"
     private_ip_address     = var.privateEndpointIp
     subresource_name       = "blob" 
   }
@@ -99,7 +103,7 @@ resource "azurerm_role_assignment" "accessTrifork" {
    count                   = var.useRBACauth ? 1  : 0
    scope                   = azurerm_storage_account.storageaccount.id
    role_definition_name    = "Storage Blob Data Reader" 
-   principal_id            = "65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
+   principal_id            =  module.Global_Constants.AADGroup_Read_access_all # ""65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
 }
 
 ## Assign role to current user

@@ -1,6 +1,6 @@
 resource "random_password" "localAdmin" {
-  length                 = 10
-  special                = false
+  length                 = 16
+  special                = true
 }
 
 resource "azurerm_public_ip" "public_ip" {
@@ -34,13 +34,13 @@ resource "azurerm_windows_virtual_machine" "vm" {
 
   size                  = var.vm_size
   license_type          = "Windows_Client"
-  admin_username        = "azadmin"
-  admin_password        = "Kodeord123456" # random_password.localAdmin.result
+  admin_username        = var.userid
+  admin_password        = ( var.userpsw != "" ? var.userpsw : random_password.localAdmin.result )
   network_interface_ids = [ azurerm_network_interface.network_interface.id ]
 
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    storage_account_type = var.storage_account_type
   }
    
   ## See latest with Get-AzVmImageSku -Location 'northeurope' -PublisherName 'MicrosoftWindowsDesktop' -Offer 'Windows-11'

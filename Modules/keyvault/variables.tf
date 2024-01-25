@@ -14,11 +14,11 @@ variable "rg_name" {
 }
 variable "create_rg_group" {
   type        = bool
-  default     = true
+  default     = false
   description = "Should module create esource group. if false rg_name is referring to existing resource group" 
 }
 
-variable "keyvaultName" {
+variable "name" {
   type        = string
 }
 
