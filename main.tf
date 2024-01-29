@@ -56,7 +56,7 @@ module "storage2" {
   createPrivateEndpoint = true
   privateEndpointSubnet = module.network.subnetID[0]
 }
-/*
+
 
 module "kv" {
   source   = "./Modules/keyvault"
@@ -64,8 +64,10 @@ module "kv" {
   rg_name =  azurerm_resource_group.rg.name
   tags     = var.tags
   name  = "kvsatest32995xx"
+  c
 }
 
+/*
 module "sql" {
   source   = "./Modules/MSSQL"
   location = var.location
