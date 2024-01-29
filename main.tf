@@ -22,6 +22,7 @@ module "network" {
   ]
 }
 
+/*
 module "vm" {
   source        = "./Modules/Vm"
 
@@ -31,7 +32,7 @@ module "vm" {
   netid         = module.network.subnetID[0]
   vm_size       = "Standard_B2s"
 }
-
+*/
 
 
 
@@ -42,7 +43,12 @@ module "storage" {
   tags     = var.tags
   name  = "satest32995xx" 
   containers = [ "con1", "con2"]
+  createPrivateEndpoint = true
+  privateEndpointSubnet = module.network.subnetID[0]
+
+
 }
+/*
 
 module "kv" {
   source   = "./Modules/keyvault"
@@ -60,4 +66,4 @@ module "sql" {
   name  = "kvsatest329d95xx"
   subnetId = module.network.subnetID[0]
 }
-
+*/

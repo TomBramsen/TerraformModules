@@ -46,6 +46,7 @@ resource "azurerm_storage_account" "storageaccount" {
 
 
 resource "azurerm_storage_account_network_rules" "stnetrules1" {
+  count                 = var.createPrivateEndpoint ? 1  : 0
   storage_account_id    = azurerm_storage_account.storageaccount.id
   default_action        = "Deny"
   bypass                = [ "AzureServices"]
@@ -73,18 +74,20 @@ resource "azurerm_private_endpoint" "StorageAccountEndpoint" {
     is_manual_connection           = false
     subresource_names              = ["blob"]
   }
+  /*
   ip_configuration {
     name                   = "ip-${var.name}"
-    private_ip_address     = var.privateEndpointIp
+ #   private_ip_address     = var.privateEndpointIp
     subresource_name       = "blob" 
   }
+  */
 }
 
-
+/*
 output "storage_account_ip" {
   value = var.createPrivateEndpoint ? azurerm_private_endpoint.StorageAccountEndpoint[0].private_service_connection[0].private_ip_address : null
 }
-
+*/
 
 ## Create containers from list
 
