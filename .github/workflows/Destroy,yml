@@ -1,4 +1,4 @@
-name: Destroy management infrastructure !!
+name: Destroy management infrastructure
 on:
   workflow_dispatch:
   
