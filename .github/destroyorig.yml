@@ -1,4 +1,4 @@
-name: _Destroy_ management infrastructure
+name: _Destroy_ original management infrastructure
 on:
   workflow_dispatch:
 
@@ -20,14 +20,14 @@ jobs:
       - name: Make Storage Account network public accessable
         shell: bash
         run: |
-         sa=$(az storage account list --query "[].name" | jq '. == []')
+         #storage='satest32995xx'
+         e=$(az storage account list --query "[?name=='$storage'].name" | jq '. == []')
 
-         for row in $sa
-         do
-           tmpName=$(echo $row | sed -e 's/\r//g')
-           echo $tmpName
-           az storage account update --name $tmpName --default-action "Allow"
-         done
+         if [ $e = 'false' ]; then
+           az storage account update --name $storage --default-action "Allow"
+         else
+           echo '$storage does not exists'
+         fi
 
       - name: Terraform init
         run: terraform init
