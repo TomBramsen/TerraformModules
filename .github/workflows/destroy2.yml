@@ -1,8 +1,6 @@
-name: Destroy management infrastructure3
+name: Destroy management infrastructure
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
 
 jobs:
   destroy2:
