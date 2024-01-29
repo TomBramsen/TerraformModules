@@ -1,0 +1,26 @@
+name: Destroy management infrastructure2
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+jobs:
+  destroy2:
+    runs-on: ubuntu-latest
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+    steps:
+      - uses: hashicorp/setup-terraform@v2
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform destroy
+        run: terraform plan -input=false
