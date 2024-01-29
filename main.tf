@@ -64,7 +64,6 @@ module "kv" {
   rg_name =  azurerm_resource_group.rg.name
   tags     = var.tags
   name  = "kvsatest32995xx"
-  c
 }
 
 /*
