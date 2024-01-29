@@ -35,7 +35,6 @@ module "vm" {
 */
 
 
-
 module "storage" {
   source   = "./Modules/Storageaccount"
   location = var.location

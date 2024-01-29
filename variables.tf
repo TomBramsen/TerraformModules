@@ -12,6 +12,7 @@ variable "tags" {
   }
 }
 
+
 # Network settings for connectivity network
 variable "connectivity_vnet_config" {
    type = object({
