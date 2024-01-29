@@ -19,7 +19,7 @@ jobs:
 
       - name: az login
         shell: bash
-        run: az login --service-principal -u ${{ vars.ARM_CLIENT_ID }} -p ${{ secrets.ARM_CLIENT_SECRET }} --tenant ${{ secrets.ARM_TENANT_ID }}
+        run: az login --service-principal -u ${{ env.ARM_CLIENT_ID }} -p ${{ env.ARM_CLIENT_SECRET }} --tenant ${{ env.ARM_TENANT_ID }}
 
       - name: Make Storage Account network public accessable
         shell: bash
