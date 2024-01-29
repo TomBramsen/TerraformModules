@@ -2,7 +2,7 @@ name: Plan management infrastructure
 on:
   workflow_dispatch:
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   plan:
