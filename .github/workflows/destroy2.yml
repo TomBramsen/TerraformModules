@@ -1,4 +1,4 @@
-name: Destroy management infrastructure
+name: _Destroy_ management infrastructure
 on:
   workflow_dispatch:
 
@@ -17,6 +17,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Make Storage Account network public accessable
+        shell: bash
+        run: |
+         storage='satest32995xx'
+         e=$(az storage account list --query "[?name=='$storage'].name" | jq '. == []')
+
+         if [ $e = 'false' ]; then
+           az storage account update --name $storage --default-action "Allow"
+         else
+           echo '$storage does not exists'
+         fi
+         
       - name: Terraform init
         run: terraform init
 
