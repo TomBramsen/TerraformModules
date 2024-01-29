@@ -1,6 +1,9 @@
 name: Destroy management infrastructure
 on:
   workflow_dispatch:
+    inputs:
+    name:
+      default: Destroy
   
 jobs: 
   destroy:
