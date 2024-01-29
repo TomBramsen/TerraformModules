@@ -28,7 +28,7 @@ jobs:
          else
            echo '$storage does not exists'
          fi
-         
+
       - name: Terraform init
         run: terraform init
 

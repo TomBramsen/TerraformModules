@@ -44,8 +44,17 @@ module "storage" {
   containers = [ "con1", "con2"]
   createPrivateEndpoint = true
   privateEndpointSubnet = module.network.subnetID[0]
+}
 
-
+module "storage2" {
+  source   = "./Modules/Storageaccount"
+  location = var.location
+  rg_name  =  azurerm_resource_group.rg.name
+  tags     = var.tags
+  name  = "satest32995xx2" 
+  containers = [ "con1", "con2"]
+  createPrivateEndpoint = true
+  privateEndpointSubnet = module.network.subnetID[0]
 }
 /*
 
