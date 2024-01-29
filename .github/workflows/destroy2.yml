@@ -1,4 +1,4 @@
-name: Destroy management infrastructure2
+name: Destroy management infrastructure3
 on:
   workflow_dispatch:
   pull_request:
