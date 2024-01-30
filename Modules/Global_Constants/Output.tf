@@ -4,7 +4,7 @@ output "AADGroup_Read_access_all" {
 }
 
 output "IP_Whitelist" {
-  value     = [ "3.3.3.3", "4.4.4.4.", "5.186.57.10"]
+  value     = [ "3.3.3.3", "4.4.4.4", "5.186.57.10"]
   sensitive = false
 }
 
