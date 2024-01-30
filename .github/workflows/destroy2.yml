@@ -1,4 +1,4 @@
-name: _Destroy_ management infrastructure
+name: _Destroy_ infrastructure
 on:
   workflow_dispatch:
 

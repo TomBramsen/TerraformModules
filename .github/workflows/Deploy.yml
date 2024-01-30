@@ -1,4 +1,4 @@
-name: Deploy management infrastructure
+name: Deploy infrastructure
 on:
   workflow_dispatch:
   pull_request:

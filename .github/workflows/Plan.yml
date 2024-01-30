@@ -1,4 +1,4 @@
-name: Plan management infrastructure
+name: Plan infrastructure
 on:
   workflow_dispatch:
   pull_request:
