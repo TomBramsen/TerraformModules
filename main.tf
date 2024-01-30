@@ -66,6 +66,16 @@ module "kv" {
   name  = "kvsatest32995xx"
 }
 
+
+module "kv2" {
+  source   = "./Modules/keyvault"
+  location = var.location
+  rg_name =  azurerm_resource_group.rg.name
+  tags     = var.tags
+  name  = "kvsatest32995xx2"
+}
+
+
 /*
 module "sql" {
   source   = "./Modules/MSSQL"
