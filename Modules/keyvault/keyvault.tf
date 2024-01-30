@@ -42,13 +42,13 @@ resource "azurerm_role_assignment" "keyvaultAccessTrifork" {
 ## The Github SP gets access to update secrets
 data "azurerm_client_config" "currentSP" {
 }
-/*
+
 resource "azurerm_role_assignment" "keyvaultAccessGithubSP" {
   scope                       = azurerm_key_vault.keyvault.id
   role_definition_name        = "Key Vault Secrets Officer" 
   principal_id                = data.azurerm_client_config.currentSP.object_id
 }
-*/
+
 resource "azurerm_role_assignment" "keyvaultAccessGithubSP2" {
   scope                       = azurerm_key_vault.keyvault.id
   role_definition_name        = "Key Vault Administrator" 
