@@ -28,8 +28,9 @@ jobs:
 
           for row in $sa
           do
-            tmpName=$(echo $row | sed -e 's/\r//g')
-            az storage account update --name $tmpName --default-action "Allow"
+            name=$(echo $row | sed -e 's/\r//g')
+            echo "Enable access Storage account : $name"
+            az storage account update --name $name --default-action "Allow"
           done
 
       - name: Make Key Vault network public accessable
@@ -40,6 +41,6 @@ jobs:
           for kv in $(echo "$kv" | jq -c '.[]'); do
             name=$(echo "$kv" | jq -r '.name')
             rg=$(echo "$kv" | jq -r '.resourceGroup')
-            echo "$name    $rg"
+            echo "Enable access Key Vault: $name in resourcegroup: $rg"
             az keyvault update --name $name --resource-group $rg --set properties.networkAcls.defaultAction=Allow
           done
