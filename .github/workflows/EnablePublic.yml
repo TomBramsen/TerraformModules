@@ -31,3 +31,15 @@ jobs:
             tmpName=$(echo $row | sed -e 's/\r//g')
             az storage account update --name $tmpName --default-action "Allow"
           done
+
+      - name: Make Key Vault network public accessable
+        shell: bash
+        run: |
+          kv=$(az keyvault list --query "[].{name:name,resourceGroup:resourceGroup}")
+
+          for kv in $(echo "$kv" | jq -c '.[]'); do
+            name=$(echo "$kv" | jq -r '.name')
+            rg=$(echo "$kv" | jq -r '.resourceGroup')
+            echo "$name    $rg"
+            az keyvault network-rule remove --name $name --resource-group $rg
+          done
