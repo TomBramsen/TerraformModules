@@ -21,17 +21,6 @@ jobs:
         shell: bash
         run: az login --service-principal -u ${{ env.ARM_CLIENT_ID }} -p ${{ env.ARM_CLIENT_SECRET }} --tenant ${{ env.ARM_TENANT_ID }}
 
-      - name: Make Storage Account network public accessable
-        shell: bash
-        run: |
-          sa=$(az storage account list --query "[].name" --output tsv)
-
-          for row in $sa
-          do
-            tmpName=$(echo $row | sed -e 's/\r//g')
-            az storage account update --name $tmpName --default-action "Allow"
-          done
-
       - name: Terraform init
         run: terraform init
 
