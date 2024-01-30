@@ -34,7 +34,7 @@ module "vm" {
 }
 */
 
-
+/*
 module "storage" {
   source   = "./Modules/Storageaccount"
   location = var.location
@@ -42,37 +42,19 @@ module "storage" {
   tags     = var.tags
   name  = "satest32995xx" 
   containers = [ "con1", "con2"]
-  createPrivateEndpoint = true
-  privateEndpointSubnet = module.network.subnetID[0]
+  # privateEndpointSubnet = module.network.subnetID[0]
+  # CORS_allowed_origins = ["dr.dk", "tv2.dk:8222" ]
 }
-
-module "storage2" {
-  source   = "./Modules/Storageaccount"
-  location = var.location
-  rg_name  =  azurerm_resource_group.rg.name
-  tags     = var.tags
-  name  = "satest32995xx2" 
-  containers = [ "con1", "con2"]
-  createPrivateEndpoint = true
-  privateEndpointSubnet = module.network.subnetID[0]
-}
+*/
 
 
 module "kv" {
   source   = "./Modules/keyvault"
   location = var.location
-  rg_name =  azurerm_resource_group.rg.name
+  rg_name  =  azurerm_resource_group.rg.name
   tags     = var.tags
-  name  = "kvsatest32995xx"
-}
-
-
-module "kv2" {
-  source   = "./Modules/keyvault"
-  location = var.location
-  rg_name =  azurerm_resource_group.rg.name
-  tags     = var.tags
-  name  = "kvsatest32995xx2"
+  name     = "kvsatest32995xx"
+  secrets  = {  key1 = "this", key2 = "is a",  key3 = "test" }
 }
 
 

@@ -1,3 +1,19 @@
+## Creates storage account with containers. 
+
+/*Usage example : 
+module "storage" {
+  source                = "./Modules/Storageaccount"
+  location              = var.location
+  rg_name               = azurerm_resource_group.rg.name
+  tags                  = var.tags
+  name                  = "satest32995xx" 
+  containers            = [ "con1", "con2"]
+  privateEndpointSubnet = module.network.subnetID[0]
+  CORS_allowed_origins  = ["http://localhost:3000", "http://test.dev.lhexperience.dk" ]
+}
+*/
+
+
 module "Global_Constants" {
    source = "../Global_Constants"
 }
@@ -19,15 +35,18 @@ resource "azurerm_storage_account" "storageaccount" {
   tags                            = var.tags
   public_network_access_enabled   = true
   blob_properties {
-    /*
-    cors_rule {
-      allowed_headers = ["*"]
-      allowed_methods = ["GET","HEAD","POST","PUT"]
-      allowed_origins = ["http://localhost:3000", "http://${var.CORS}"]
-      exposed_headers = ["*"]
-      max_age_in_seconds = 3600
-    }
-    */
+    
+    dynamic "cors_rule" {
+      for_each = length(var.CORS_allowed_origins) == 0 ? [] : [1]
+      content {
+        allowed_headers = ["*"]
+        allowed_methods = var.CORS_allowed_methods
+        allowed_origins = var.CORS_allowed_origins
+        exposed_headers = ["*"]
+        max_age_in_seconds = 3600
+      }
+    } 
+    
     change_feed_enabled     = "true"
     versioning_enabled      = "true"
 
@@ -46,7 +65,7 @@ resource "azurerm_storage_account" "storageaccount" {
 
 
 resource "azurerm_storage_account_network_rules" "stnetrules1" {
-  count                 = var.createPrivateEndpoint ? 1  : 0
+  count                 = var.privateEndpointSubnet == "" ? 0  : 1
   storage_account_id    = azurerm_storage_account.storageaccount.id
   default_action        = "Deny"
   bypass                = [ "AzureServices"]
@@ -54,15 +73,13 @@ resource "azurerm_storage_account_network_rules" "stnetrules1" {
   depends_on = [ azurerm_storage_account.storageaccount ]
 }
 
-
-
 ## Create private endpoint to storage account
 
 ##
 ## Private Endpoint for storage account
 ##
 resource "azurerm_private_endpoint" "StorageAccountEndpoint" {
-  count               = var.createPrivateEndpoint ? 1  : 0
+  count               = var.privateEndpointSubnet == "" ? 0  : 1
   name                = "endpoint-${var.name}"
   location            = var.location
   resource_group_name = var.rg_name
@@ -74,20 +91,7 @@ resource "azurerm_private_endpoint" "StorageAccountEndpoint" {
     is_manual_connection           = false
     subresource_names              = ["blob"]
   }
-  /*
-  ip_configuration {
-    name                   = "ip-${var.name}"
- #   private_ip_address     = var.privateEndpointIp
-    subresource_name       = "blob" 
-  }
-  */
 }
-
-/*
-output "storage_account_ip" {
-  value = var.createPrivateEndpoint ? azurerm_private_endpoint.StorageAccountEndpoint[0].private_service_connection[0].private_ip_address : null
-}
-*/
 
 ## Create containers from list
 
@@ -97,7 +101,6 @@ resource "azurerm_storage_container" "containers" {
   storage_account_name  = azurerm_storage_account.storageaccount.name
   container_access_type = "private"
 }
-
 
 ## Create RBAC roles.   
 ##  - Only relevant if RBAC was chosen

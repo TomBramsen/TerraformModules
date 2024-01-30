@@ -23,10 +23,17 @@ variable "name" {
   description = "Name of server for database. Must be uniq.  Environment name will be added in the end"
 }
 
-variable "CORS" {
-  type = string
-  default = "*"
+## Resource sharing on Blob.  Leave CORS_allowed_origins empty if feature not needed
+variable "CORS_allowed_origins" {
+  type = list(string)
+  default = []
 }
+
+variable "CORS_allowed_methods" {
+  type = list(string)
+  default = ["GET","HEAD","POST","PUT"]
+}
+
 variable "useRBACauth" {
   type         = bool
   default      = false # true
@@ -60,21 +67,11 @@ variable "containers" {
   description = "list of containers to create"
 }
 
-variable "createPrivateEndpoint" {
-  type         = bool
-  default      = false
-  description = "Should private endpoint be created?  If so, specify subnet to link to"
-}
+## Private endpoint name.  Leave blank if endpoint not needed
 variable "privateEndpointSubnet" {
   type         = string
   default      = ""
   description  = "Must be specified if createPrivateEndpoint is true, otherwise leace it blank"
-}
-variable "privateEndpointIp" {
-  type         = string
-  default      = ""
-  description  = "Must be specified if createPrivateEndpoint is true, otherwise leace it blank"
-  ## Option to use dynamic ip should be implemented
 }
 
 variable "subnetId" {
