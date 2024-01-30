@@ -48,12 +48,13 @@ resource "azurerm_role_assignment" "keyvaultAccessGithubSP" {
   role_definition_name        = "Key Vault Secrets Officer" 
   principal_id                = data.azurerm_client_config.currentSP.object_id
 }
-
+/*
 resource "azurerm_role_assignment" "keyvaultAccessGithubSP2" {
   scope                       = azurerm_key_vault.keyvault.id
   role_definition_name        = "Key Vault Administrator" 
   principal_id                = data.azurerm_client_config.currentSP.object_id
 }
+*/
 
 ## If other users needs update access, loop through list
 resource "azurerm_role_assignment" "accessOthers" {
@@ -70,7 +71,7 @@ resource "azurerm_key_vault_secret" "secrets" {
    name                       = each.key
    value                      = each.value
    key_vault_id               = azurerm_key_vault.keyvault.id
-   depends_on                 = [ azurerm_key_vault.keyvault ]
+   depends_on                 = [ azurerm_key_vault.keyvault,  azurerm_role_assignment.keyvaultAccessGithubSP ]
 }
 
 ## Return id of keyvault
