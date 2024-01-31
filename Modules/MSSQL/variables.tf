@@ -23,6 +23,12 @@ variable "name" {
   description = "Name of server for database. Must be uniq.  Environment name will be added in the end"
 }
 
+variable "databases" {
+  type        = list(string)
+  default     = [ "Database" ]
+  description = "List of databases that needs to be created.  "
+}
+
 variable "adminId" {
   type = string 
   default = "mssadministrator"

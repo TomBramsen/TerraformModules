@@ -8,11 +8,11 @@ module "storage" {
   tags                  = var.tags
   name                  = "satest32995xx" 
   containers            = [ "con1", "con2"]
+  public_access         = true
   privateEndpointSubnet = module.network.subnetID[0]
-  CORS_allowed_origins  = ["http://localhost:3000", "http://test.dev.lhexperience.dk" ]
+  CORS_allowed_origins  = ["localhost:3000", "test.dev.lhexperience.dk" ]
 }
 */
-
 
 module "Global_Constants" {
    source = "../Global_Constants"
@@ -24,6 +24,12 @@ resource "azurerm_resource_group" "rg-storageaccount" {
   location                = var.location
 }
 
+ # this value has to be greater than restorePolicy.days
+locals { 
+  delete_retention_days = var.retention_days + 7
+  delete_retention_days_minus_1 =  var.retention_days + 6
+}
+
 resource "azurerm_storage_account" "storageaccount" {
   name                            = var.name
   resource_group_name             = var.rg_name
@@ -33,9 +39,9 @@ resource "azurerm_storage_account" "storageaccount" {
   default_to_oauth_authentication = var.useRBACauth
   allow_nested_items_to_be_public = false
   tags                            = var.tags
-  public_network_access_enabled   = true
-  blob_properties {
-    
+  public_network_access_enabled   = true  # we use either from known net or all.  False would prohobit Github access
+
+  blob_properties {  
     dynamic "cors_rule" {
       for_each = length(var.CORS_allowed_origins) == 0 ? [] : [1]
       content {
@@ -47,17 +53,30 @@ resource "azurerm_storage_account" "storageaccount" {
       }
     } 
     
-    change_feed_enabled     = "true"
-    versioning_enabled      = "true"
+    change_feed_enabled     = var.retention_days == 0 ?  "false" : "true"  # must be true when using restore policy
+    versioning_enabled      = var.retention_days == 0 ?  "false" : "true"
 
-    restore_policy {
-      days = 30 
+    # 1 - 365 days.   Must be less than delete_retention_policy
+    dynamic "restore_policy" {
+      for_each = var.retention_days == 0 ? [] : [1]
+      content {
+        days = "${var.retention_days == 0  ? 1 : var.retention_days}" ## will give error if 0 even when block is not run
+       }
     }
-    delete_retention_policy {
-      days                  = 40   # this value has to be greater than ARM value restorePolicy.days
+
+    dynamic "delete_retention_policy" {
+      for_each = var.retention_days == 0 ? [] : [1]
+      content {
+        days = local.delete_retention_days     
+       }
     }
-    container_delete_retention_policy {
-        days                = "30"
+
+    # 1 - 365 days
+    dynamic "container_delete_retention_policy" {
+      for_each = var.retention_days == 0 ? [] : [1]
+      content {
+        days = local.delete_retention_days         
+       }
     }
   }
   depends_on = [ azurerm_resource_group.rg-storageaccount ]
@@ -65,7 +84,7 @@ resource "azurerm_storage_account" "storageaccount" {
 
 
 resource "azurerm_storage_account_network_rules" "stnetrules1" {
-  count                 = var.privateEndpointSubnet == "" ? 0  : 1
+  count                 = var.public_access ? 0  : 1
   storage_account_id    = azurerm_storage_account.storageaccount.id
   default_action        = "Deny"
   bypass                = [ "AzureServices"]
@@ -78,8 +97,13 @@ resource "azurerm_storage_account_network_rules" "stnetrules1" {
 ##
 ## Private Endpoint for storage account
 ##
+
+## Need this as terraform plan needs to estimate count, and this workarount manages that
+locals {
+  create_private_endpoint = var.privateEndpointSubnet == 0 ? false : true 
+}
 resource "azurerm_private_endpoint" "StorageAccountEndpoint" {
-  count               = var.privateEndpointSubnet == "" ? 0  : 1
+  count               =  local.create_private_endpoint  ? 0  : 1
   name                = "endpoint-${var.name}"
   location            = var.location
   resource_group_name = var.rg_name
@@ -91,7 +115,8 @@ resource "azurerm_private_endpoint" "StorageAccountEndpoint" {
     is_manual_connection           = false
     subresource_names              = ["blob"]
   }
-}
+ }
+
 
 ## Create containers from list
 

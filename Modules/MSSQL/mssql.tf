@@ -26,7 +26,8 @@ resource "azurerm_mssql_server" "sql" {
 
 
 resource "azurerm_mssql_database" "db" {
-  name                         = "DB"
+  for_each = toset(var.databases)
+  name                         = each.value
   server_id                    = azurerm_mssql_server.sql.id
   max_size_gb                  = 50     # https://learn.microsoft.com/en-us/sql/t-sql/statements/create-database-transact-sql?view=azuresqldb-current&tabs=sqlpool#arguments-1
   sku_name                     = "S0"
@@ -50,12 +51,16 @@ resource "azurerm_mssql_database" "db" {
 ##
 ## Private Endpoint 
 ##
+locals {
+  create_private_endpoint = var.privateEndpointSubnet == 0 ? false : true 
+}
 
 resource "azurerm_private_endpoint" "MSSQLPrivateEndpoint" {
+  count               = local.create_private_endpoint  ? 0  : 1
   name                = "endpoint-${azurerm_mssql_server.sql.name}"
   location            = var.location
   resource_group_name = var.rg_name
-  subnet_id           = var.subnetId
+  subnet_id           = var.privateEndpointSubnet
 
   private_service_connection {
     name                           = "sc-${azurerm_mssql_server.sql.name}"
@@ -63,28 +68,13 @@ resource "azurerm_private_endpoint" "MSSQLPrivateEndpoint" {
     is_manual_connection           = false
     subresource_names              = ["sqlServer"]
   }
-/*  ip_configuration {
-    name                           = "ip-${var.MSSQLLEndpointName}-${local.name_postfix}"
-    private_ip_address             = var.MSSQLLEndpointIIP
-    subresource_name               = "sqlServer" 
-  }
-  */
 }
 
-# Find the IP Address associated with the private endpoint created above
-data "azurerm_private_endpoint_connection" "mssql_ple_connection" {
-  name                             = azurerm_private_endpoint.MSSQLPrivateEndpoint.name
-  resource_group_name              = var.rg_name
-  depends_on                       = [ azurerm_private_endpoint.MSSQLPrivateEndpoint ]
+
+output "sql_id" {
+  value  = azurerm_mssql_server.sql.id
 }
-/*
-# Create DNS Record for storylab storage in private dns zone
-resource "azurerm_private_dns_a_record" "storylab_mssql_dnsrecord" {
-  provider                         = azurerm.connectivity
-  name                             = "${var.storylab_privatelink_dnskey}-${var.environment}"
-  zone_name                        = "privatelink.database.windows.net"
-  resource_group_name              = "rg-dns-connectivity-neu"
-  ttl                              = 300
-  records                          = [ data.azurerm_private_endpoint_connection.mssql_ple_connection.private_service_connection.0.private_ip_address ]
+
+output "database_ids" {
+  value =  [ for d in azurerm_mssql_database.db : d.id ]
 }
-*/

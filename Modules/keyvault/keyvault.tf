@@ -22,7 +22,7 @@ resource "azurerm_key_vault" "keyvault" {
 
    network_acls {
       bypass         = "AzureServices"
-      default_action = "Deny"
+      default_action = var.public_access ? "Allow" : "Deny"
       ip_rules       = module.Global_Constants.IP_Whitelist
   }
 
