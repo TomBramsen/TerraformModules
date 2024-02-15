@@ -30,8 +30,7 @@ resource "azurerm_key_vault" "keyvault" {
 }
 
 ##
-## Give access to Keyvault
-##
+## Give access to Keyvault½
 ## - Trifork Entra AD Group gets read access
 resource "azurerm_role_assignment" "keyvaultAccessTrifork" {
    scope                      = azurerm_key_vault.keyvault.id

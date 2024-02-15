@@ -8,11 +8,6 @@ resource "azurerm_resource_group" "rg-sql" {
   location                = var.location
 }
 
-
-##
-## MSSQL
-##
-
 resource "azurerm_mssql_server" "sql" {
   name                         = var.name
   resource_group_name          = var.rg_name
@@ -24,26 +19,39 @@ resource "azurerm_mssql_server" "sql" {
   tags                         = var.tags
 }
 
+resource "azurerm_mssql_firewall_rule" "sql-whitelist" {
+  count            = var.public_access ? 0 : length(module.Global_Constants.IP_Whitelist)
+  name             = "Location-${count.index}"
+  server_id        = azurerm_mssql_server.sql.id
+  start_ip_address = cidrhost(module.Global_Constants.IP_Whitelist[count.index],0)
+  end_ip_address   = cidrhost(module.Global_Constants.IP_Whitelist[count.index],-1)
+}
 
 resource "azurerm_mssql_database" "db" {
-  for_each = toset(var.databases)
-  name                         = each.value
+  count = length( var.databases )
+  name                         = var.databases[count.index].name
   server_id                    = azurerm_mssql_server.sql.id
-  max_size_gb                  = 50     # https://learn.microsoft.com/en-us/sql/t-sql/statements/create-database-transact-sql?view=azuresqldb-current&tabs=sqlpool#arguments-1
-  sku_name                     = "S0"
-  zone_redundant               = false
-  geo_backup_enabled           = false
+  max_size_gb                  = var.databases[count.index].size   
+  sku_name                     = var.databases[count.index].sku_name
+  zone_redundant               = var.databases[count.index].zone_redundant
+  geo_backup_enabled           = var.databases[count.index].geo_backup_enabled
 
-  short_term_retention_policy {
-    retention_days             = 7
-    backup_interval_in_hours   = 24    # 12-24 allowed
+  dynamic "short_term_retention_policy" {
+    for_each = var.databases[count.index].retention_enabled == true ? [1] : [] 
+    content {
+      retention_days           = var.databases[count.index].retention_days
+      backup_interval_in_hours = var.databases[count.index].backup_interval_in_hours
+    }
   }
   
-  long_term_retention_policy {
-    monthly_retention          = "P3M"  # Past 6 months
-    week_of_year               = 1      # Week of year for yearly backup
-    weekly_retention           = "P4W"  # Past 8 weeks
-    yearly_retention           = "PT0S" # none
+  dynamic "long_term_retention_policy" {
+    for_each = var.databases[count.index].retention_enabled == true ? [1] : [] 
+    content {
+      monthly_retention        = var.databases[count.index].monthly_retention
+      week_of_year             = var.databases[count.index].week_of_year
+      weekly_retention         = var.databases[count.index].weekly_retention
+      yearly_retention         = var.databases[count.index].yearly_retention
+    }
   }
 }
 
@@ -69,7 +77,6 @@ resource "azurerm_private_endpoint" "MSSQLPrivateEndpoint" {
     subresource_names              = ["sqlServer"]
   }
 }
-
 
 output "sql_id" {
   value  = azurerm_mssql_server.sql.id

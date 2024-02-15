@@ -34,7 +34,7 @@ module "vm" {
 }
 */
 
-
+/*
 module "storage" {
   source                = "./Modules/Storageaccount"
   location              = var.location
@@ -42,11 +42,12 @@ module "storage" {
   tags                  = var.tags
   name                  = "satest32995xx" 
   containers            = [ "con1", "con2"]
-  public_access         = true
+  public_access         = false
   privateEndpointSubnet = module.network.subnetID[0]
   CORS_allowed_origins  = ["localhost:3000", "test.dev.lhexperience.dk" ]
   retention_days        = 0
 }
+*/
 
 /*
 module "kv" {
@@ -60,13 +61,19 @@ module "kv" {
 }
 */
 
-/*
+
 module "sql" {
   source   = "./Modules/MSSQL"
   location = var.location
   rg_name =  azurerm_resource_group.rg.name
   tags     = var.tags
   name  = "kvsatest329d95xx"
+  databases = [ { name = "testDB",
+                  size = 20  } ,
+                 { name = "testDB2",
+                  size = 30,
+                  retention_enabled = false  } ,
+              ]       
   subnetId = module.network.subnetID[0]
 }
-*/
+

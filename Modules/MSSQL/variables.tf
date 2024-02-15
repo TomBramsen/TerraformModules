@@ -24,10 +24,24 @@ variable "name" {
 }
 
 variable "databases" {
-  type        = list(string)
-  default     = [ "Database" ]
-  description = "List of databases that needs to be created.  "
+  type                    = list(object({
+    name                     = string
+    sku_name                 = optional(string, "S0")
+    zone_redundant           = optional(bool, false)
+    geo_backup_enabled       = optional(bool, false) 
+    size                     = optional(number, 50)
+    retention_enabled        = optional(bool, true)
+    retention_days           = optional(number, 7)      # 1-35 allowed
+    backup_interval_in_hours = optional(number, 24)     # only 12 or 24 allowed
+    monthly_retention        = optional(string, "P3M")  # Past 3 months
+    week_of_year             = optional(number, 1)      # Week of year for yearly backup
+    weekly_retention         = optional(string, "P4W")  # Past 4 weeks
+    yearly_retention         = optional(string, "PT0S") # none
+  }))
+  default                    = [ ]
+  description                = "List of databases that needs to be created.  "
 }
+
 
 variable "adminId" {
   type = string 
@@ -55,4 +69,10 @@ variable "privateEndpointIp" {
 variable "subnetId" {
   type = string
   default = ""
+}
+
+variable "public_access" {
+  type         = bool
+  default      = false
+  description  = "Is public access to storage account Allow og Deny?"
 }
