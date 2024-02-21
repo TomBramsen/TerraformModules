@@ -116,7 +116,7 @@ resource "azurerm_storage_management_policy" "delete-after-one-day-policy" {
   storage_account_id = azurerm_storage_account.storageaccount.id
 
   rule {
-    name    = "delete-after-30-days"
+    name    = "delete-after-number-days"
     enabled = true
     filters {
       prefix_match = var.lifecycle_delete_in_containers 
