@@ -27,8 +27,9 @@ module "Global" {
   ## Works.  Fine grained Token created in Git
   #source = "git::https://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@github.com/TomBramsen/work.git//Modules/Global_Constants?ref=main"
 
-  #source = "git::ssh://git@github.com/TomBramsen/work.git//Modules/Global_Constants?ref=main"
-  source = "git::https://4252d070eaea3e9364b1b51539e24c198829613e:TerrraformModules@github.com/LEGO-House/terraform-modules.git//Terraform/Modules/Global"
+  source = "git::ssh://git@github.com/TomBramsen/work.git//Modules/Global?ref=main"
+  # source = "git::https://4252d070eaea3e9364b1b51539e24c198829613e:TerrraformModules@github.com/LEGO-House/terraform-modules.git//Terraform/Modules/Global"
+
 }
 
 
@@ -102,8 +103,31 @@ resource "azurerm_storage_account_network_rules" "stnetrules1" {
   storage_account_id    = azurerm_storage_account.storageaccount.id
   default_action        = "Deny"
   bypass                = [ "AzureServices"]
-  ip_rules              = module.Global_Constants.IP_Whitelist
+  ip_rules              = module.Global.IP_Whitelist
   depends_on = [ azurerm_storage_account.storageaccount ]
+}
+
+
+##
+# Container lifecycle policy to automatically delete objects
+##
+resource "azurerm_storage_management_policy" "delete-after-one-day-policy" {
+  count = length(var.lifecycle_delete_in_containers) == 0 ? 0: 1
+  storage_account_id = azurerm_storage_account.sa-storylab.id
+
+  rule {
+    name    = "delete-after-30-days"
+    enabled = true
+    filters {
+      prefix_match = var.lifecycle_delete_in_containers 
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        delete_after_days_since_modification_greater_than          = var.lifecycle_delete_after_days
+      }
+    }
+  }
 }
 
 ## Create private endpoint to storage account
@@ -148,7 +172,7 @@ resource "azurerm_role_assignment" "accessTrifork" {
    count                   = var.useRBACauth ? 1  : 0
    scope                   = azurerm_storage_account.storageaccount.id
    role_definition_name    = "Storage Blob Data Reader" 
-   principal_id            =  module.Global_Constants.AADGroup_Read_access_all # ""65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
+   principal_id            =  module.Global.AADGroup_Read_access_all # ""65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
 }
 
 ## Assign role to current user

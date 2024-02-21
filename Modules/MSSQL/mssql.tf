@@ -1,5 +1,5 @@
-module "Global_Constants" {
-   source = "../Global_Constants"
+module "Global" {
+   source = "../Global"
 }
 
 resource "azurerm_resource_group" "rg-sql" {
@@ -19,12 +19,13 @@ resource "azurerm_mssql_server" "sql" {
   tags                         = var.tags
 }
 
+
 resource "azurerm_mssql_firewall_rule" "sql-whitelist" {
-  count            = var.public_access ? 0 : length(module.Global_Constants.IP_Whitelist)
+  count            = var.public_access ? 0 : length(module.Global.IP_Whitelist)
   name             = "Location-${count.index}"
   server_id        = azurerm_mssql_server.sql.id
-  start_ip_address = cidrhost(module.Global_Constants.IP_Whitelist[count.index],0)
-  end_ip_address   = cidrhost(module.Global_Constants.IP_Whitelist[count.index],-1)
+  start_ip_address = cidrhost(module.Global.IP_Whitelist[count.index],0)
+  end_ip_address   = cidrhost(module.Global.IP_Whitelist[count.index],-1)
 }
 
 resource "azurerm_mssql_database" "db" {

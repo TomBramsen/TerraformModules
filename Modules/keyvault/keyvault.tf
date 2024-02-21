@@ -1,5 +1,5 @@
-module "Global_Constants" {
-   source = "../Global_Constants"
+module "Global" {
+   source = "../Global"
 }
 
 resource "azurerm_resource_group" "rg-keyvault" {
@@ -23,7 +23,7 @@ resource "azurerm_key_vault" "keyvault" {
    network_acls {
       bypass         = "AzureServices"
       default_action = var.public_access ? "Allow" : "Deny"
-      ip_rules       = module.Global_Constants.IP_Whitelist
+      ip_rules       = module.Global.IP_Whitelist
   }
 
   depends_on = [ azurerm_resource_group.rg-keyvault ]
@@ -35,7 +35,7 @@ resource "azurerm_key_vault" "keyvault" {
 resource "azurerm_role_assignment" "keyvaultAccessTrifork" {
    scope                      = azurerm_key_vault.keyvault.id
    role_definition_name       = "Key Vault Secrets User" 
-   principal_id               = module.Global_Constants.AADGroup_Read_access_all # "65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
+   principal_id               = module.Global.AADGroup_Read_access_all # "65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
 }
 
 ## The Github SP gets access to update secrets

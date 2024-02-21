@@ -81,3 +81,15 @@ variable "public_access" {
   description = "Is public access to storage account Allow og Deny?"
 }
 
+variable "lifecycle_delete_in_containers" {
+  type        = list(string)
+  default     = [  ]
+  description = "Delete contents in containers older than x days"
+}
+
+variable "lifecycle_delete_after_days" {
+  type        = number
+  default     = 30
+  description = "Delete contents in containers older than 30 days. Only relevant for specified containers"
+}
+
