@@ -27,7 +27,7 @@ module "Global" {
   ## Works.  Fine grained Token created in Git
   #source = "git::https://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@github.com/TomBramsen/work.git//Modules/Global_Constants?ref=main"
 
-  source = "git::ssh://git@github.com/TomBramsen/work.git//Modules/Global?ref=main"
+  source = "git::ssh://git@github.com/TomBramsen/TerraformModules.git//Modules/Global?ref=main"
   # source = "git::https://4252d070eaea3e9364b1b51539e24c198829613e:TerrraformModules@github.com/LEGO-House/terraform-modules.git//Terraform/Modules/Global"
 
 }
@@ -113,7 +113,7 @@ resource "azurerm_storage_account_network_rules" "stnetrules1" {
 ##
 resource "azurerm_storage_management_policy" "delete-after-one-day-policy" {
   count = length(var.lifecycle_delete_in_containers) == 0 ? 0: 1
-  storage_account_id = azurerm_storage_account.sa-storylab.id
+  storage_account_id = azurerm_storage_account.storageaccount.id
 
   rule {
     name    = "delete-after-30-days"

@@ -46,7 +46,7 @@ module "storage" {
   privateEndpointSubnet = module.network.subnetID[0]
   CORS_allowed_origins  = ["localhost:3000", "test.dev.lhexperience.dk" ]
   retention_days        = 0
-  lifecycle_delete_in_containers = "con1"
+  lifecycle_delete_in_containers = [ "con1" ]
   lifecycle_delete_after_days = 33
 }
 
