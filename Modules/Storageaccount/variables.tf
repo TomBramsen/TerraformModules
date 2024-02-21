@@ -84,7 +84,7 @@ variable "public_access" {
 variable "lifecycle_delete_in_containers" {
   type        = list(string)
   default     = [  ]
-  description = "Delete contents in containers older than x days"
+  description = "Delete contents in containers older than x days.  Leave empty if not relevant"
 }
 
 variable "lifecycle_delete_after_days" {

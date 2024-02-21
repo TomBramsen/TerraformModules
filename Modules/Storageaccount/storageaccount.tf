@@ -19,7 +19,6 @@ module "Global_Constants" {
 }
 */
 
-#module "Global_Constants" {
 module "Global" {
   #source = "git::git@github.com:LEGO-House/terraform-modules.git//Terraform/Modules/Global?ref=master"
   #source = "git@github.com:LEGO-House/terraform-modules.git//Terraform/Modules/Global?ref=master"
@@ -27,7 +26,7 @@ module "Global" {
   ## Works.  Fine grained Token created in Git
   #source = "git::https://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@github.com/TomBramsen/work.git//Modules/Global_Constants?ref=main"
 
-  source = "git::ssh://git@github.com/TomBramsen/TerraformModules.git//Modules/Global?ref=main"
+  source = "git::ssh://git@github.com/TomBramsen/TerraformModules.git//Modules/Global"
   # source = "git::https://4252d070eaea3e9364b1b51539e24c198829613e:TerrraformModules@github.com/LEGO-House/terraform-modules.git//Terraform/Modules/Global"
 
 }

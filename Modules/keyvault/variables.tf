@@ -46,6 +46,12 @@ variable "secrets" {
   description  = "List of secrets and key that will be added to Keyvault."
 }
 
+variable "enable_rbac_authorization" {
+  type         = bool
+  default      = true
+  description   = "Enable RBAC Authentication.  Should be left yo true"
+
+}
 variable "public_access" {
   type         = bool
   default      = false

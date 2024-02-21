@@ -10,7 +10,7 @@ resource "azurerm_resource_group" "rg" {
 module "network" {
   source        = "./Modules/network"
 
-  resourcegroup = azurerm_resource_group.rg.name
+  rg_name       = azurerm_resource_group.rg.name
   location      = azurerm_resource_group.rg.location
   name          = "NetVPNrange"
   address_space = ["10.52.1.0/24"]
@@ -46,12 +46,12 @@ module "storage" {
   privateEndpointSubnet = module.network.subnetID[0]
   CORS_allowed_origins  = ["localhost:3000", "test.dev.lhexperience.dk" ]
   retention_days        = 0
-  #lifecycle_delete_in_containers = [ "con1" ]
-  #lifecycle_delete_after_days = 33
+  lifecycle_delete_in_containers = [ "con1" ]
+  lifecycle_delete_after_days = 33
 }
 
 
-/*
+
 module "kv" {
   source   = "./Modules/keyvault"
   location = var.location
@@ -61,8 +61,8 @@ module "kv" {
   secrets  = {  key1 = "this", key2 = "is a",  key3 = "test" }
   public_access = false
 }
-*/
 
+/*
 
 module "sql" {
   source   = "./Modules/MSSQL"
@@ -79,3 +79,4 @@ module "sql" {
   subnetId = module.network.subnetID[0]
 }
 
+*/

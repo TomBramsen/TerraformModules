@@ -5,7 +5,7 @@ output "AADGroup_Read_access_all" {
 
 ## Use ranges <> /31,/32
 output "IP_Whitelist" { 
-  value        = [  "5.186.57.10/30",
+  value        = [  "5.186.57.8/30",
                     "20.242.182.32/28"
   ]
   sensitive    = false

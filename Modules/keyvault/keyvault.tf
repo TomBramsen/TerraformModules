@@ -1,5 +1,5 @@
 module "Global" {
-   source = "../Global"
+  source = "git::ssh://git@github.com/TomBramsen/TerraformModules.git//Modules/Global"
 }
 
 resource "azurerm_resource_group" "rg-keyvault" {
@@ -15,17 +15,19 @@ resource "azurerm_key_vault" "keyvault" {
    location                   = var.location
    resource_group_name        = var.rg_name
    tenant_id                  = "${data.azurerm_client_config.currenttenant.tenant_id}"
-   enable_rbac_authorization  = true
+   enable_rbac_authorization  = var.enable_rbac_authorization
    sku_name                   = var.sku
    tags                       = var.tags 
    purge_protection_enabled   = var.purge_protection
 
-   network_acls {
-      bypass         = "AzureServices"
-      default_action = var.public_access ? "Allow" : "Deny"
-      ip_rules       = module.Global.IP_Whitelist
-  }
-
+   dynamic "network_acls" {
+     for_each =var.public_access == true ? [] : [1]
+     content {
+       bypass         = "AzureServices"
+       default_action = "Deny"
+       ip_rules       = module.Global.IP_Whitelist
+     }
+   }
   depends_on = [ azurerm_resource_group.rg-keyvault ]
 }
 
@@ -47,13 +49,6 @@ resource "azurerm_role_assignment" "keyvaultAccessGithubSP" {
   role_definition_name        = "Key Vault Secrets Officer" 
   principal_id                = data.azurerm_client_config.currentSP.object_id
 }
-/*
-resource "azurerm_role_assignment" "keyvaultAccessGithubSP2" {
-  scope                       = azurerm_key_vault.keyvault.id
-  role_definition_name        = "Key Vault Administrator" 
-  principal_id                = data.azurerm_client_config.currentSP.object_id
-}
-*/
 
 ## If other users needs update access, loop through list
 resource "azurerm_role_assignment" "accessOthers" {
