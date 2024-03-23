@@ -2,6 +2,11 @@ module "Global" {
    source = "../Global"
 }
 
+resource "random_password" "admin-password" {
+  length                 = 16
+  special                = true
+}
+
 resource "azurerm_resource_group" "rg-sql" {
   count                   = var.create_rg_group ? 1  : 0
   name                    = var.rg_name
@@ -14,7 +19,7 @@ resource "azurerm_mssql_server" "sql" {
   location                     = var.location
   version                      = "12.0"
   administrator_login          =  var.adminId
-  administrator_login_password = "Kodeord1234567" #random_password.admin-password.result    # Password created and stored in Keyvault
+  administrator_login_password = var.adminPSW == "" ? random_password.admin-password.result  : var.adminPSW
   minimum_tls_version          = "1.2"
   tags                         = var.tags
 }
@@ -54,35 +59,34 @@ resource "azurerm_mssql_database" "db" {
       yearly_retention         = var.databases[count.index].yearly_retention
     }
   }
+  depends_on =  [azurerm_mssql_server.sql ]
 }
 
 
 ##
 ## Private Endpoint 
 ##
-locals {
-  create_private_endpoint = var.privateEndpointSubnet == 0 ? false : true 
-}
+
 
 resource "azurerm_private_endpoint" "MSSQLPrivateEndpoint" {
-  count               = local.create_private_endpoint  ? 0  : 1
-  name                = "endpoint-${azurerm_mssql_server.sql.name}"
+  count               = length(var.privateEndpointSubnet)
+  name                = "endpoint-sql-${count.index}-${var.name}"
   location            = var.location
   resource_group_name = var.rg_name
-  subnet_id           = var.privateEndpointSubnet
+  subnet_id           = var.privateEndpointSubnet[count.index]
 
   private_service_connection {
-    name                           = "sc-${azurerm_mssql_server.sql.name}"
+    name                           = "sc-${count.index}-${azurerm_mssql_server.sql.name}"
     private_connection_resource_id = azurerm_mssql_server.sql.id
     is_manual_connection           = false
     subresource_names              = ["sqlServer"]
   }
 }
 
-output "sql_id" {
-  value  = azurerm_mssql_server.sql.id
-}
-
-output "database_ids" {
-  value =  [ for d in azurerm_mssql_database.db : d.id ]
+# Find the IP Address associated with the private endpoint created above
+data "azurerm_private_endpoint_connection" "endpoint_ips" {
+  count               = length(var.privateEndpointSubnet)
+  name                = "endpoint-sql-${count.index}-${var.name}"
+  resource_group_name =  var.rg_name
+  depends_on          = [ azurerm_private_endpoint.MSSQLPrivateEndpoint ]
 }

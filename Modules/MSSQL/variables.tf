@@ -44,32 +44,24 @@ variable "databases" {
 
 
 variable "adminId" {
-  type = string 
-  default = "mssadministrator"
+  type            = string 
+  default         = "mssadministrator"
+}
+
+variable "adminPSW" {
+  type             = string 
+  default          = ""
+  description      = "MS SQL Admin Password.  Leave blank for random created password"
 }
 
 
-variable "createPrivateEndpoint" {
-  type         = bool
-  default      = false
-  description = "Should private endpoint be created?  If so, specify subnet to link to"
-}
+
 variable "privateEndpointSubnet" {
-  type         = string
-  default      = ""
-  description  = "Must be specified if createPrivateEndpoint is true, otherwise leace it blank"
-}
-variable "privateEndpointIp" {
-  type         = string
-  default      = ""
-  description  = "Must be specified if createPrivateEndpoint is true, otherwise leace it blank"
-  ## Option to use dynamic ip should be implemented
+  type         = list(string)
+  default      = []
+  description  = "A list of subnets to create endpoints in.  Leave blank for no private endpoint"
 }
 
-variable "subnetId" {
-  type = string
-  default = ""
-}
 
 variable "public_access" {
   type         = bool

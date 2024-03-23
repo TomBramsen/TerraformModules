@@ -135,16 +135,12 @@ resource "azurerm_storage_management_policy" "delete-after-one-day-policy" {
 ## Private Endpoint for storage account
 ##
 
-## Need this as terraform plan needs to estimate count, and this workarount manages that
-locals {
-  create_private_endpoint = var.privateEndpointSubnet == 0 ? false : true 
-}
 resource "azurerm_private_endpoint" "StorageAccountEndpoint" {
-  count               =  local.create_private_endpoint  ? 0  : 1
-  name                = "endpoint-${var.name}"
+  count               = length(var.privateEndpointSubnet)
+  name                = "endpoint-${count.index}-${var.name}"
   location            = var.location
   resource_group_name = var.rg_name
-  subnet_id           = var.privateEndpointSubnet
+  subnet_id           = var.privateEndpointSubnet[count.index]
 
   private_service_connection {
     name                           = "sc-${var.name}"
@@ -196,5 +192,5 @@ output "storageaccount_id" {
 }
 
 output "container_ids" {
-  value =  [ for c in azurerm_storage_container.containers : c.id ]
+  value = azurerm_private_endpoint.StorageAccountEndpoint.id
 }

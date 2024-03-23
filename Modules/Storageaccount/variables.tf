@@ -70,8 +70,8 @@ variable "containers" {
 
 ## Private endpoint name.  Leave blank if endpoint not needed
 variable "privateEndpointSubnet" {
-  type         = string
-  default      = ""
+  type         = list(string)
+  default      = []
   description  = "Must be specified if createPrivateEndpoint is true, otherwise leace it blank"
 }
 
