@@ -5,6 +5,8 @@ variable "location" {
 
 variable "tags" {
   type         = map(any)
+  default     = {  
+  }
 }
 
 variable "rg_name" {
@@ -12,15 +14,9 @@ variable "rg_name" {
   description  = "Name of resource group"
 }
 
-variable "create_rg_group" {
-  type        = bool
-  default     = false
-  description = "Should module create esource group. if false rg_name is referring to existing resource group" 
-}
-
 variable "name" {
   type        = string
-  description = "Name of server for database. Must be uniq.  Environment name will be added in the end"
+  description = "Name of the Storage Account. Must be uniqe."
 }
 
 ## Resource sharing on Blob.  Leave CORS_allowed_origins empty if feature not needed
@@ -36,7 +32,7 @@ variable "CORS_allowed_methods" {
 
 variable "useRBACauth" {
   type         = bool
-  default      = false # true
+  default      = false 
   description = "access list vs RBAC.  Use RBAC when possible"
 }
 
@@ -68,12 +64,13 @@ variable "containers" {
   description = "list of containers to create"
 }
 
-## Private endpoint name.  Leave blank if endpoint not needed
+## Private endpoint name.  
 variable "privateEndpointSubnet" {
   type         = list(string)
   default      = []
-  description  = "Must be specified if createPrivateEndpoint is true, otherwise leace it blank"
+  description  = "A list of subnets to create endpoints in.  Leave blank for no private endpoint"
 }
+
 
 variable "public_access" {
   type        = bool
@@ -92,4 +89,3 @@ variable "lifecycle_delete_after_days" {
   default     = 30
   description = "Delete contents in containers older than 30 days. Only relevant for specified containers"
 }
-

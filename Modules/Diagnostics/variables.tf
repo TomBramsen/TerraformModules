@@ -7,13 +7,19 @@ variable "log_analytics_workspace_id" {
   description = "(Required) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent."
 }
 
-variable "enable_metrics" {
-  description = "Should metrics data be enabled"
-  default     = true 
-}
-
-
 variable "enable_logs" {
   description = "Should logs  be enabled"
   default     = false 
+}
+
+variable "specific_metrics" {
+  default = []
+  description  = "Specify named Metrics instead of default=all. Please note that names depends on resource type"
+  # example    =  [ [ "Basic" ], [ "Basic" ]]
+ }
+
+variable "specific_logs" {
+  default = []  # null = all
+  description  = "Specify named Logs instead of default=all. Please note that names depends on resource type" 
+  # example    =  [ [ "Errors", "Timeouts"], [ "Errors", "Timeouts"]]
 }

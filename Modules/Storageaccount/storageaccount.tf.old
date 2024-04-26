@@ -2,29 +2,48 @@
 
 /*Usage example : 
 module "storage" {
-  source =  "github.com/TomBramsen/TerraformModules/Modules/Storageaccount"
+  source                = "./Modules/Storageaccount"
   location              = var.location
   rg_name               = azurerm_resource_group.rg.name
   tags                  = var.tags
   name                  = "satest32995xx" 
   containers            = [ "con1", "con2"]
   public_access         = true
+  privateEndpointSubnet = module.network.subnetID[0]
   CORS_allowed_origins  = ["localhost:3000", "test.dev.lhexperience.dk" ]
 }
-
-Specify subnet id to privateEndpointSubnet, if private endpoint is needed
-
-Add "lifecycle_delete_in_containers" container list and lifecycle_delete_after_days
-if you need containers to automatically clean up content after a specific number of days
+*/
+/*
+module "Global_Constants" {
+   source = "../Global_Constants"
+}
 */
 
-## Global LH Terraform modules.  Import Global Constants
 module "Global" {
-   source = "github.com/TomBramsen/TerraformModules/Modules/Global"
+  #source = "git::git@github.com:LEGO-House/terraform-modules.git//Terraform/Modules/Global?ref=master"
+  #source = "git@github.com:LEGO-House/terraform-modules.git//Terraform/Modules/Global?ref=master"
+
+  ## Works.  Fine grained Token created in Git
+  #source = "git::https://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@github.com/TomBramsen/work.git//Modules/Global_Constants?ref=main"
+
+ # source = "git::ssh://git@github.com/TomBramsen/TerraformModules.git//Modules/Global"
+#  source = ".//Global"
+  # source = "git::https://4252d070eaea3e9364b1b51539e24c198829613e:TerrraformModules@github.com/LEGO-House/terraform-modules.git//Terraform/Modules/Global"
+ # source = "git::git@domain.com:/TomBramsen/TerraformModules//Modules/Global"
+  source = "github.com/TomBramsen/TerraformModules/Modules/Global"
+
 }
 
+resource "azurerm_resource_group" "rg-storageaccount" {
+  count                   = var.create_rg_group ? 1  : 0
+  name                    = var.rg_name
+  location                = var.location
+}
+
+ # this value has to be greater than restorePolicy.days
 locals { 
   delete_retention_days = var.retention_days + 7
+  delete_retention_days_minus_1 =  var.retention_days + 6
 }
 
 resource "azurerm_storage_account" "storageaccount" {
@@ -36,7 +55,7 @@ resource "azurerm_storage_account" "storageaccount" {
   default_to_oauth_authentication = var.useRBACauth
   allow_nested_items_to_be_public = false
   tags                            = var.tags
-  public_network_access_enabled   = true  #  Must be true for Github to reach Storage Account.  We limit access with whitelist ip's
+  public_network_access_enabled   = true  # we use either from known net or all.  False would prohobit Github access
 
   blob_properties {  
     dynamic "cors_rule" {
@@ -76,9 +95,10 @@ resource "azurerm_storage_account" "storageaccount" {
        }
     }
   }
+  depends_on = [ azurerm_resource_group.rg-storageaccount ]
 }
 
-## Apply Whitelist IP Range if relevant
+
 resource "azurerm_storage_account_network_rules" "stnetrules1" {
   count                 = var.public_access ? 0  : 1
   storage_account_id    = azurerm_storage_account.storageaccount.id
@@ -87,6 +107,7 @@ resource "azurerm_storage_account_network_rules" "stnetrules1" {
   ip_rules              = module.Global.IP_Whitelist
   depends_on = [ azurerm_storage_account.storageaccount ]
 }
+
 
 ##
 # Container lifecycle policy to automatically delete objects
@@ -124,22 +145,16 @@ resource "azurerm_private_endpoint" "StorageAccountEndpoint" {
   subnet_id           = var.privateEndpointSubnet[count.index]
 
   private_service_connection {
-    name                           = "sc-${count.index}-${var.name}"
+    name                           = "sc-${var.name}"
     private_connection_resource_id = azurerm_storage_account.storageaccount.id
     is_manual_connection           = false
     subresource_names              = ["blob"]
   }
  }
 
-# Find the IP Address associated with the private endpoint created above
-data "azurerm_private_endpoint_connection" "endpoint_IPs" {
-  count               = length(var.privateEndpointSubnet)
-  name                = "endpoint-${count.index}-${var.name}"
-  resource_group_name =  var.rg_name
-  depends_on          = [ azurerm_private_endpoint.StorageAccountEndpoint ]
-}
 
 ## Create containers from list
+
 resource "azurerm_storage_container" "containers" {
   for_each = toset(var.containers)
   name                  = lower(each.value)
@@ -149,11 +164,12 @@ resource "azurerm_storage_container" "containers" {
 
 ## Create RBAC roles.   
 ##  - Only relevant if RBAC was chosen
+
 resource "azurerm_role_assignment" "accessTrifork" {
    count                   = var.useRBACauth ? 1  : 0
    scope                   = azurerm_storage_account.storageaccount.id
    role_definition_name    = "Storage Blob Data Reader" 
-   principal_id            =  module.Global.AADGroup_Read_access_all  
+   principal_id            =  module.Global.AADGroup_Read_access_all # ""65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
 }
 
 ## Assign role to current user
@@ -171,4 +187,12 @@ resource "azurerm_role_assignment" "accessOthers" {
    scope                   = azurerm_storage_account.storageaccount.id
    role_definition_name    = "Storage Blob Data Contributor" 
    principal_id            = each.value
+}
+
+output "storageaccount_id" {
+  value  = azurerm_storage_account.storageaccount.id
+}
+
+output "container_ids" {
+  value = azurerm_private_endpoint.StorageAccountEndpoint.id
 }

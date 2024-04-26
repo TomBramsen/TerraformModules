@@ -33,17 +33,17 @@ variable "connectivity_vnet_config" {
   default = {
     rg_name                      = "rg-conn"
     name                         = "connectivity"
-    address_space                = [ "10.42.8.0/23" ]
+    address_space                = [ "10.142.8.0/23" ]
     subnet_name                  = "subnet-conn"
-    subnet_address_prefixes      = [ "10.42.8.0/24" ] 
+    subnet_address_prefixes      = [ "10.142.8.0/24" ] 
     subnet_dns_inbound_name      = "subnet-dns-inbound"
-    subnet_dns_inbound_prefixes  = [ "10.42.9.0/27" ] 
+    subnet_dns_inbound_prefixes  = [ "10.142.9.0/27" ] 
     subnet_dns_outbound_name     = "subnet-dns-outbound"
-    subnet_dns_outbound_prefixes = [ "10.42.9.32/27" ]  
+    subnet_dns_outbound_prefixes = [ "10.142.9.32/27" ]  
     subnet_appgw_Front_name      = "subnet-appgwFrontSubnet"
-    subnet_appgw_Front_prefixes  = [ "10.42.9.64/27" ] 
+    subnet_appgw_Front_prefixes  = [ "10.142.9.64/27" ] 
     subnet_appgw_Back_name       = "subnet-appgwBackSubnet"
-    subnet_appgw_Back_prefixes   = [ "10.42.9.96/27" ]  
+    subnet_appgw_Back_prefixes   = [ "10.142.9.96/27" ]  
   }
 }
 
@@ -122,15 +122,19 @@ variable "fw_pol_config" {
 
 
 # Log Analytics settings
-variable "log_config" {
-  type = object({
-    retention    = number
-    id           = string
-  })
+variable "azure_log_analytics_config" {
+   type = object({
+    rg_name                 = string
+    name                    = string
+    retention_in_days       = number
+    sku                     = string
+    })
   default = {
-    retention    = 7
-    id           = "/subscriptions/b2b43e30-7abd-4d22-80be-cbf9bebd9ac1/resourceGroups/rg-log-management-neu/providers/Microsoft.OperationalInsights/workspaces/log-management-neu"
-  }
+      rg_name                 = "rg-log"
+      name                    = "log"
+      retention_in_days       = 30
+      sku                     = "PerGB2018"
+    }
 }
 
 ##
@@ -343,4 +347,46 @@ variable "private_dns_records" {
       prod_ip           = "10.37.128.254"   
     }
   ]
+}
+
+
+
+
+variable "subnets" {
+   type = map(any)
+   default = {
+     subnet_1 = {
+        name                = "subnet-default"
+        address_prefixes    = [ "10.43.1.0/24" ]
+     }
+     jumphost_win = {
+        name                = "subnet-jumphost"
+        address_prefixes    = [ "10.43.2.0/24" ]
+     }
+     bastion_subnet = {
+        name                = "AzureBastionSubnet"
+        address_prefixes    = [ "10.43.3.0/24" ]
+     }
+  }
+}
+
+
+# Network settings 
+variable "vNet" {
+   type = object({
+    address_space          = list(string)
+    name                   = string
+    subnet_ip_shared       = list(string)
+    subnet_name_shared     = string
+    subnet_ip_devicemgmt   = list(string)
+    subnet_name_devicemgmt = string
+    })
+    default = {
+    address_space            = ["10.179.16.0/20"]
+    name                     = "vnet-platform-services-dev"
+    subnet_ip_shared         = ["10.179.16.0/24"]
+    subnet_name_shared       = "subnet-shared-dev"
+    subnet_ip_devicemgmt     = ["10.179.17.0/25"]  
+    subnet_name_devicemgmt   = "subnet-devicemgmt-dev"
+  }
 }

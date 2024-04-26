@@ -1,4 +1,6 @@
-
+module "Global" {
+   source = "github.com/TomBramsen/TerraformModules/Modules/Global"
+}
 
 resource "azurerm_resource_group" "rg" {
   location = var.location
@@ -13,11 +15,15 @@ module "network" {
   rg_name       = azurerm_resource_group.rg.name
   location      = azurerm_resource_group.rg.location
   name          = "NetVPNrange"
-  address_space = ["10.52.1.0/24"]
+  address_space = var.vNet.address_space
   subnets       = [
    {
-      name      = "subnetVPNRange"  
-      ip_range  = ["10.52.1.0/24"]
+      name              = var.vNet.subnet_name_shared
+      ip_range          = var.vNet.subnet_ip_shared
+   },
+   {
+      name              = var.vNet.subnet_name_devicemgmt
+      ip_range          = var.vNet.subnet_ip_devicemgmt
    }
   ]
 }
@@ -34,9 +40,10 @@ module "vm" {
 }
 */
 
-/*
+
 module "storage" {
   source                = "./Modules/Storageaccount"
+  #  source = "github.com/TomBramsen/TerraformModules/Modules/Storageaccount"
   location              = var.location
   rg_name               = azurerm_resource_group.rg.name
   tags                  = var.tags
@@ -49,7 +56,7 @@ module "storage" {
   lifecycle_delete_in_containers = [ "con1" ]
   lifecycle_delete_after_days = 33
 }
-*/
+
 
 /*
 module "kv" {
@@ -84,4 +91,42 @@ module "sql" {
 
 output "endpoints_ips" {
   value            = module.sql.endpoints_ips[*]
+}
+
+
+
+
+##
+##     Log Analytics Workspace
+##
+
+resource "azurerm_resource_group" "logAnalyticsRg" {
+  name                = "logs"
+  location            = var.location
+  tags                = var.tags 
+}
+resource "azurerm_log_analytics_workspace" "logAnalytics" {
+  name                = "loganalytics"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.logAnalyticsRg.name
+  sku                 = var.azure_log_analytics_config.sku
+  retention_in_days   = var.azure_log_analytics_config.retention_in_days
+  tags                = var.tags 
+}
+
+module "sa_diag" {
+  source                     = "./Modules/diagnostics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.logAnalytics.id 
+  targets_resource_id        = concat(module.sql.database_ids,[module.storage.storageaccount_id])
+  # enable_logs = true
+  # specific_metrics =  [ [ "Basic" ], [ "Basic" ]]
+  # specific_logs = [ [ "Errors", "Timeouts", "SQLInsights"], [ "Errors", "Timeouts","SQLInsights"]]
+}
+
+output "logsCheck" {
+  value = module.sa_diag.logs
+}
+
+output "metricsCheck" {
+   value = module.sa_diag.metrics
 }
