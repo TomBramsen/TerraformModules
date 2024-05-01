@@ -13,112 +13,6 @@ variable "tags" {
 }
 
 
-# Network settings for connectivity network
-variable "connectivity_vnet_config" {
-   type = object({
-    rg_name                      = string
-    name                         = string
-    address_space                = list(string)
-    subnet_name                  = string
-    subnet_address_prefixes      = list(string)
-    subnet_dns_inbound_name      = string
-    subnet_dns_inbound_prefixes  = list(string)
-    subnet_dns_outbound_name     = string
-    subnet_dns_outbound_prefixes = list(string)
-    subnet_appgw_Front_name      = string
-    subnet_appgw_Front_prefixes  = list(string)
-    subnet_appgw_Back_name       = string
-    subnet_appgw_Back_prefixes   = list(string)  
-   })
-  default = {
-    rg_name                      = "rg-conn"
-    name                         = "connectivity"
-    address_space                = [ "10.142.8.0/23" ]
-    subnet_name                  = "subnet-conn"
-    subnet_address_prefixes      = [ "10.142.8.0/24" ] 
-    subnet_dns_inbound_name      = "subnet-dns-inbound"
-    subnet_dns_inbound_prefixes  = [ "10.142.9.0/27" ] 
-    subnet_dns_outbound_name     = "subnet-dns-outbound"
-    subnet_dns_outbound_prefixes = [ "10.142.9.32/27" ]  
-    subnet_appgw_Front_name      = "subnet-appgwFrontSubnet"
-    subnet_appgw_Front_prefixes  = [ "10.142.9.64/27" ] 
-    subnet_appgw_Back_name       = "subnet-appgwBackSubnet"
-    subnet_appgw_Back_prefixes   = [ "10.142.9.96/27" ]  
-  }
-}
-
-# Virtual vwan definition and tier
-variable "vwan_config" {
-  type = object({
-    rg_name               = string
-    name                  = string
-    sku                   = string
-  })
-  default = {
-    rg_name               = "rg-vwan"
-    name                  = "vwan-01"
-    sku                   = "Standard"
-  }
-}
-
-# Hub configuration.  
-variable "vwan_hub_config" {
-  type = object({
-    name                  = string
-    address_space         = string
-    sku                   = string
-   })
-  default = {
-    name                  = "vwan-hub-01"
-    address_space         = "10.42.0.0/21"
-    sku                   = "Standard"
- }
-}
-
-
-# # Private dns a records - dev
-variable "private_dns_records_dev" {
-  type = list(object({
-    a_record          = string
-    target_ip         = string
-   }))
-  default = [
-    {  
-       a_record          = "robolab"
-      target_ip         = "10.41.0.4"   # kluster-dev/kubernetes-internal
-    } 
-  ]
-}
-
-# Firewall name and tier
-variable "fw_config" {
-  type = object({
-    name = string
-    sku = object({
-      tier = string
-      name = string
-    })
-  })
-  default = {
-    name = "fw_01"
-    sku = {
-      name = "AZFW_Hub"
-      tier = "Standard"
-    }
-  }
-}
-
-# Azure firewall policy
-variable "fw_pol_config" {
-  type = object({
-    name          = string
-    cluster_cidrs = list(string)
-  })
-  default = {
-    name = "fw01"
-    cluster_cidrs = [ "10.40.0.0/16","10.41.0.0/16" ] 
-  }
-}
 
 
 # Log Analytics settings
@@ -163,71 +57,7 @@ variable "dns_zones_config" {
   }
 }
 
-# AppGW configuration.  
-variable "appgw_hub_config" {
-  type = object({
-    rg_name               = string
-    name                  = string
-    pip_name              = string
-    private_ip_name       = string
-    gw_ip_conf_name       = string
-    backend_adr_pool_name = string
-    backend_http_settings = string
-    http_listener_name    = string
-    frontend_port_name    = string
-    frontend_port         = number
-    protocol              = string
-    protocol_backend      = string
-    address_space         = string
-    routing_rule_name     = string
-    sku = object({
-      name                = string
-      tier                = string
-      capacity            = number
-    })
-    prodsite =object({
-      name                = string
-      hostname            = string
-      ip_addresses        = list(string)
-    })
-    devsite =object({
-      name                = string
-      hostname            = string
-      ip_addresses        = list(string)
-    })
-    })
-  default = {
-    rg_name               = "rg-appgw"
-    name                  = "appgw-01"
-    pip_name              = "pip-appgw"
-    private_ip_name       = "private-ip-appgw"
-    gw_ip_conf_name       = "appgw-ip-conf"
-    backend_adr_pool_name = "backend_pool"
-    backend_http_settings = "backend_http_settings"
-    http_listener_name    = "http-listener"
-    frontend_port_name    = "frontend"
-    frontend_port         = 80
-    protocol              = "Http"
-    protocol_backend      = "Http"
-    address_space         = "10.42.0.0/21"
-    routing_rule_name     = "routing-rule"
-    sku = {
-      name                = "Standard_v2"
-      tier                = "Standard_v2"
-      capacity            = 2
-    }
-    prodsite = {
-      name                = "prodsite"
-      hostname            = "prod.lh"
-      ip_addresses        = [ "10.0.0.1"]
-    }
-    devsite = {
-      name                = "devsite"
-      hostname            = "dev.lh"
-      ip_addresses        = [ "10.0.0.2"]
-    }
-  }
-}
+
 
 variable "management_vnet_subnets" {
    type = map(any)
@@ -271,52 +101,6 @@ variable "acr_scope_map" {
   } 
 }
   
-
-variable "win_jump_config" {
-   type = object({
-    count                   = number
-    rg_name                 = string
-    name                    = string
-    vnet_name               = string
-    subnet_name             = string
-    pip_name                = string
-    vm_size                 = string
-   vnet_address_space       = list(string)
-   subnet_address_space     = list(string)
-    })
-  default = {
-    count                   = 5
-    rg_name                 = "rg-winjump"
-    name                    = "jmp"
-    vnet_name               = "vnet-jmp"
-    subnet_name             = "vsubnet-jmp"
-    pip_name                = "pip-bast"
-    vm_size                 = "Standard_B2s"
-   vnet_address_space       = [ "10.43.0.0/22" ]
-   subnet_address_space     = [ "10.43.1.0/24" ]
-   }
-}
-
-
-variable  apache_web_config {
-  default = {
-    count                 = 1
-    prefix                = "apache"
-   resource_group_name    = "Apache"
-   location               = "northeurope"
-   virtual_network_name   = "vnet"
-   address_space          = ["10.103.0.0/16"]
-   subnet_prefix          = ["10.103.2.0/24"]
-   hostname               = "vmtf"
-   vm_size                = "Standard_B2s"
-   image_publisher        = "Canonical"
-   image_offer            = "0001-com-ubuntu-server-jammy"
-   image_sku              = "22_04-lts-gen2"
-   image_version          = "latest"
-   admin_username         = "adminuser"
-   admin_password         = "Kodeord1!"
-  }
-}
 
 
 # DNS Records that are shared among experiences
@@ -379,7 +163,9 @@ variable "vNet" {
     subnet_ip_shared       = list(string)
     subnet_name_shared     = string
     subnet_ip_devicemgmt   = list(string)
-    subnet_name_devicemgmt = string
+    subnet_name_devicemgmt = string,
+    subnet_ip_test         = list(string)
+    subnet_name_test       = string
     })
     default = {
     address_space            = ["10.179.16.0/20"]
@@ -387,6 +173,8 @@ variable "vNet" {
     subnet_ip_shared         = ["10.179.16.0/24"]
     subnet_name_shared       = "subnet-shared-dev"
     subnet_ip_devicemgmt     = ["10.179.17.0/25"]  
-    subnet_name_devicemgmt   = "subnet-devicemgmt-dev"
+    subnet_name_devicemgmt   = "subnet-devicemgmt-dev",
+    subnet_ip_test           = ["10.179.17.128/25"]  
+    subnet_name_test         = "subnet-test-dev"
   }
 }

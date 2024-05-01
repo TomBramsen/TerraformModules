@@ -90,3 +90,12 @@ data "azurerm_private_endpoint_connection" "endpoint_ips" {
   resource_group_name =  var.rg_name
   depends_on          = [ azurerm_private_endpoint.MSSQLPrivateEndpoint ]
 }
+
+module "sql_diag2" {
+  count                      = var.enableAnalyticsMetrics ? 1 : 0 
+  source                     = "github.com/TomBramsen/TerraformModules/Modules/Diagnostics"
+  log_analytics_workspace_id = "/subscriptions/1b3b25cd-2fb6-4f73-a6f7-c2fc0178ce5d/resourceGroups/logs/providers/Microsoft.OperationalInsights/workspaces/loganalytics" # var.log_analytics_id
+  targets_resource_id        = [ for d in azurerm_mssql_database.db : d.id ]
+  enable_logs                = var.enableAnalyticsLogs
+
+}

@@ -68,3 +68,17 @@ variable "public_access" {
   default      = false
   description  = "Is public access to storage account Allow og Deny?"
 }
+
+
+
+variable "enableAnalyticsMetrics"  {
+  type         = bool
+  default      = true   
+  description  = "Should database send Metrics to Log Analytics Workspace"
+}
+
+variable "enableAnalyticsLogs"  {
+  type         = bool
+  default      = false   
+  description  = "Should database send Logs to Log Analytics Workspace"
+}

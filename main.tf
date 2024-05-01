@@ -20,6 +20,10 @@ module "network" {
    {
       name              = var.vNet.subnet_name_shared
       ip_range          = var.vNet.subnet_ip_shared
+   }, 
+   {
+      name              = var.vNet.subnet_name_test
+      ip_range          = var.vNet.subnet_ip_test
    },
    {
       name              = var.vNet.subnet_name_devicemgmt
@@ -41,6 +45,7 @@ module "vm" {
 */
 
 
+
 module "storage" {
   source                = "./Modules/Storageaccount"
   #  source = "github.com/TomBramsen/TerraformModules/Modules/Storageaccount"
@@ -57,8 +62,8 @@ module "storage" {
   lifecycle_delete_after_days = 33
 }
 
-
 /*
+
 module "kv" {
   source   = "./Modules/keyvault"
   location = var.location
@@ -70,6 +75,8 @@ module "kv" {
   public_access = false
   depends_on = [ module.sql ]
 }
+
+
 */
 
 
@@ -114,14 +121,16 @@ resource "azurerm_log_analytics_workspace" "logAnalytics" {
   tags                = var.tags 
 }
 
+/*
 module "sa_diag" {
   source                     = "./Modules/diagnostics"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.logAnalytics.id 
-  targets_resource_id        = concat(module.sql.database_ids,[module.storage.storageaccount_id])
+  targets_resource_id        = [module.storage.storageaccount_id] # concat(module.sql.database_ids,[module.storage.storageaccount_id])
   # enable_logs = true
   # specific_metrics =  [ [ "Basic" ], [ "Basic" ]]
   # specific_logs = [ [ "Errors", "Timeouts", "SQLInsights"], [ "Errors", "Timeouts","SQLInsights"]]
 }
+
 
 output "logsCheck" {
   value = module.sa_diag.logs
@@ -129,4 +138,41 @@ output "logsCheck" {
 
 output "metricsCheck" {
    value = module.sa_diag.metrics
+}
+
+*/
+
+output "networkID" {
+  value = module.network.subnetID
+}
+
+
+locals {
+  test =  contains(module.network.subnetID, "test")
+  }
+
+# Build id for specific subnet
+locals {
+  split = split("/",module.network.subnetID[0])
+  len   = (length(local.split)) - 1 
+  slice = slice(local.split, 0, local.len)
+  hep  = join("/", concat(local.slice,[var.vNet.subnet_name_test] ) )
+}
+
+
+output "split" {
+  value = local.split
+}
+
+output "slice" {
+  value = local.slice
+}
+
+
+output "join" {
+  value = local.hep
+}
+
+output "subnet" {
+  value = "${module.network.vnetID}/subnets/${var.vNet.subnet_name_test}"
 }
