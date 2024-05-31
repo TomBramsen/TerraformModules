@@ -1,21 +1,15 @@
 variable "location" {
   type = string
-  default = "northeurope"
+  default = "westeurope"
 }
 
 variable "tags" {
-  type = map(any)
+  type        = map(any)
 }
 
 variable "rg_name" {
   type        = string
   description = "Name of resource group"
-}
-
-variable "create_rg_group" {
-  type        = bool
-  default     = false
-  description = "Should module create esource group. if false rg_name is referring to existing resource group" 
 }
 
 variable "name" {
@@ -42,19 +36,22 @@ variable "databases" {
   description                = "List of databases that needs to be created.  "
 }
 
-
 variable "adminId" {
-  type            = string 
-  default         = "mssadministrator"
+  type             = string 
+  default          = "mssadministrator"
+  description      = "MS SQL Admin user"
 }
 
 variable "adminPSW" {
   type             = string 
   default          = ""
-  description      = "MS SQL Admin Password.  Leave blank for random created password"
+  description      = "MS SQL Admin Password.  If blank, a random password will be created"
 }
 
-
+variable "SQLversion" {
+  default          = "12.0"
+  description      = "SQL Version.  Update this will create new resource!"
+}
 
 variable "privateEndpointSubnet" {
   type         = list(string)
@@ -62,18 +59,16 @@ variable "privateEndpointSubnet" {
   description  = "A list of subnets to create endpoints in.  Leave blank for no private endpoint"
 }
 
-
-variable "public_access" {
-  type         = bool
-  default      = false
-  description  = "Is public access to storage account Allow og Deny?"
+variable "log_analytics_id" {
+   type        = string
+   default     = "/subscriptions/1b3b25cd-2fb6-4f73-a6f7-c2fc0178ce5d/resourceGroups/logs/providers/Microsoft.OperationalInsights/workspaces/loganalytics" 
+   description = "ID for the Log Analytics Workspace to send data to"
+   
 }
-
-
 
 variable "enableAnalyticsMetrics"  {
   type         = bool
-  default      = true   
+  default      = false   
   description  = "Should database send Metrics to Log Analytics Workspace"
 }
 

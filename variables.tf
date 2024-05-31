@@ -13,6 +13,33 @@ variable "tags" {
 }
 
 
+variable "databases" {
+   type = list(object({
+       name                     = string
+       size                     = number
+       retention_enabled        = bool   
+       sku_name                 = string
+       backup_interval_in_hours = number
+       monthly_retention        = string
+       week_of_year             = number
+       weekly_retention         = string
+       yearly_retention         = string
+  }))
+   default =  [
+      {
+      name                     = "kvsatest329d95xlx"
+      size                     = 50
+      retention_enabled        = false
+      sku_name                 = "S0"
+      backup_interval_in_hours = 24
+      monthly_retention        = "P3M"
+      week_of_year             = 1
+      weekly_retention         = "P4W"
+      yearly_retention         = "PT0S"
+      }
+   ]
+}
+
 
 
 # Log Analytics settings
@@ -30,6 +57,8 @@ variable "azure_log_analytics_config" {
       sku                     = "PerGB2018"
     }
 }
+
+
 
 ##
 ## DNS Zones

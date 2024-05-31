@@ -3,7 +3,7 @@
 
 # Options to enable / disable log data
 # Options to provide your own log settings instead of choosing everything
-# - Please note, if you remove settings already set, it will not be removed.check 
+# - Please note, if you remove settings already set, it will not be removed.
 #   Instead, remove diagnostic settings in portal, and run terraform again to get updated values!
 
 data "azurerm_monitor_diagnostic_categories" "categories" {

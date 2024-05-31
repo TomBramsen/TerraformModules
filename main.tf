@@ -1,3 +1,5 @@
+# terraform plan  -var-file="prod.tfvars" -input=false 
+
 module "Global" {
    source = "github.com/TomBramsen/TerraformModules/Modules/Global"
 }
@@ -45,9 +47,9 @@ module "vm" {
 */
 
 
-
+/*
 module "storage" {
-  source                = "./Modules/Storageaccount"
+  source                = "github.com/TomBramsen/TerraformModules/Modules/Storageaccount"
   #  source = "github.com/TomBramsen/TerraformModules/Modules/Storageaccount"
   location              = var.location
   rg_name               = azurerm_resource_group.rg.name
@@ -61,6 +63,7 @@ module "storage" {
   lifecycle_delete_in_containers = [ "con1" ]
   lifecycle_delete_after_days = 33
 }
+*/
 
 /*
 
@@ -80,27 +83,16 @@ module "kv" {
 */
 
 
+
 module "sql" {
-  source   = "./Modules/MSSQL"
-  location = var.location
-  rg_name =  azurerm_resource_group.rg.name
-  tags     = var.tags
-  name  = "kvsatest329d95xlx"
-  databases = [ { name = "testDB",
-                  size = 20  } ,
-                 { name = "testDB2",
-                  size = 30,
-                  retention_enabled = false  } ,
-              ]       
-  privateEndpointSubnet = [ module.network.subnetID[0]]
+  source                = "github.com/TomBramsen/TerraformModules/Modules/MSSQL"
+  location              = var.location
+  rg_name               =  azurerm_resource_group.rg.name
+  tags                  = var.tags
+  name                  = "kvsatest329d95xlx"
+  databases             =  var.databases 
+  privateEndpointSubnet = [  module.network.subnetID[0] ]
 }
-
-
-output "endpoints_ips" {
-  value            = module.sql.endpoints_ips[*]
-}
-
-
 
 
 ##

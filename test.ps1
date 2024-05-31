@@ -1,18 +1,17 @@
 
-$ARM_SUBSCRIPTION_ID="ca91e8c9-d124-43fc-afe8-dfad04dcbd93" 
-$ARM_TENANT_ID="1b3b25cd-2fb6-4f73-a6f7-c2fc0178ce5d" 
-
+$ARM_SUBSCRIPTION_ID="1b3b25cd-2fb6-4f73-a6f7-c2fc0178ce5d" 
+$ARM_TENANT_ID="ca91e8c9-d124-43fc-afe8-dfad04dcbd93"
 ## Create storage account for manual Terraform deployments
 $TerraformStorageSub = $ARM_SUBSCRIPTION_ID
 $TerraformStorageRSG = "TerraformShared"
-$TerraformStorageName="terraformtbr0001"
+$TerraformStorageName="tbrtrifork01"
 $TerraformStorageContainer =  "terraform"
 
-az login --tenant  $ARM_TENANT_ID
+#az login --tenant  $ARM_TENANT_ID
 az account set --subscription $TerraformStorageSub 
 
 # Create resource group
-az group create --name $TerraformStorageRSG --location "North Europe"
+az group create --name $TerraformStorageRSG --location "west Europe"
 
 # Create storage account
 az storage account create --resource-group $TerraformStorageRSG --name $TerraformStorageName --sku Standard_LRS --encryption-services blob
@@ -61,3 +60,11 @@ $sp
 $scope = "/subscriptions/ca91e8c9-d124-43fc-afe8-dfad04dcbd93"
 $ServicePrincipalName = "github-SP"
 $servicePrincipal = (az ad sp create-for-rbac --name $ServicePrincipalName --years 150 --role owner --scopes $scope) | ConvertFrom-Json
+
+
+
+
+az provider register --namespace 'Microsoft.HybridCompute'
+az provider register --namespace 'Microsoft.GuestConfiguration'
+az provider register --namespace 'Microsoft.HybridConnectivity'
+az provider register --namespace 'Microsoft.AzureArcData'

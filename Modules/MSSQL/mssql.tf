@@ -1,5 +1,22 @@
+## Creates MS SQL Server
+
+/* Usage example : 
+module "sql" {
+  source                = "git::https://github.com/LEGO-House/terraform-modules.git//Terraform/Modules/SQL"
+  rg_name               = azurerm_resource_group.rg.name
+  location              = azurerm_resource_group.rg.location
+  tags                  = var.tags
+  name                  = "SQLDatabaseTest"
+  databases             = [ { "name" = "db1" } ]
+}
+
+Many options exists in the databases object, like replication
+Specify subnet id to privateEndpointSubnet, if private endpoint is needed
+*/
+
+## Global LH Terraform modules.  Import Global Constants
 module "Global" {
-   source = "../Global"
+ source = "../Global"
 }
 
 resource "random_password" "admin-password" {
@@ -7,26 +24,19 @@ resource "random_password" "admin-password" {
   special                = true
 }
 
-resource "azurerm_resource_group" "rg-sql" {
-  count                   = var.create_rg_group ? 1  : 0
-  name                    = var.rg_name
-  location                = var.location
-}
-
 resource "azurerm_mssql_server" "sql" {
   name                         = var.name
   resource_group_name          = var.rg_name
   location                     = var.location
-  version                      = "12.0"
-  administrator_login          =  var.adminId
+  version                      = var.SQLversion
+  administrator_login          = var.adminId
   administrator_login_password = var.adminPSW == "" ? random_password.admin-password.result  : var.adminPSW
   minimum_tls_version          = "1.2"
   tags                         = var.tags
 }
 
-
 resource "azurerm_mssql_firewall_rule" "sql-whitelist" {
-  count            = var.public_access ? 0 : length(module.Global.IP_Whitelist)
+  count            = length(module.Global.IP_Whitelist)
   name             = "Location-${count.index}"
   server_id        = azurerm_mssql_server.sql.id
   start_ip_address = cidrhost(module.Global.IP_Whitelist[count.index],0)
@@ -59,17 +69,16 @@ resource "azurerm_mssql_database" "db" {
       yearly_retention         = var.databases[count.index].yearly_retention
     }
   }
-  depends_on =  [azurerm_mssql_server.sql ]
 }
-
 
 ##
 ## Private Endpoint 
 ##
 
+## Need this as terraform plan needs to estimate count, and this workarount manages that
 
 resource "azurerm_private_endpoint" "MSSQLPrivateEndpoint" {
-  count               = length(var.privateEndpointSubnet)
+  count               =  length(var.privateEndpointSubnet)
   name                = "endpoint-sql-${count.index}-${var.name}"
   location            = var.location
   resource_group_name = var.rg_name
@@ -84,18 +93,18 @@ resource "azurerm_private_endpoint" "MSSQLPrivateEndpoint" {
 }
 
 # Find the IP Address associated with the private endpoint created above
-data "azurerm_private_endpoint_connection" "endpoint_ips" {
+data "azurerm_private_endpoint_connection" "endpoint_IPs" {
   count               = length(var.privateEndpointSubnet)
   name                = "endpoint-sql-${count.index}-${var.name}"
   resource_group_name =  var.rg_name
   depends_on          = [ azurerm_private_endpoint.MSSQLPrivateEndpoint ]
 }
 
-module "sql_diag2" {
+
+module "sql_diag" {
   count                      = var.enableAnalyticsMetrics ? 1 : 0 
   source                     = "github.com/TomBramsen/TerraformModules/Modules/Diagnostics"
-  log_analytics_workspace_id = "/subscriptions/1b3b25cd-2fb6-4f73-a6f7-c2fc0178ce5d/resourceGroups/logs/providers/Microsoft.OperationalInsights/workspaces/loganalytics" # var.log_analytics_id
+  log_analytics_workspace_id = var.log_analytics_id
   targets_resource_id        = [ for d in azurerm_mssql_database.db : d.id ]
   enable_logs                = var.enableAnalyticsLogs
-
 }

@@ -188,11 +188,3 @@ resource "azurerm_role_assignment" "accessOthers" {
    role_definition_name    = "Storage Blob Data Contributor" 
    principal_id            = each.value
 }
-
-output "storageaccount_id" {
-  value  = azurerm_storage_account.storageaccount.id
-}
-
-output "container_ids" {
-  value = azurerm_private_endpoint.StorageAccountEndpoint.id
-}
