@@ -1,5 +1,5 @@
 output "AADGroup_Read_access_all" {
-  value        = "da191597-aea6-4904-b1d6-13f50adb80ab"
+  value        = "61717ace-f72c-42ea-a077-d31c6958571"
   sensitive    = true
 }
 
