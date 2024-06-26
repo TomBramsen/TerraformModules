@@ -34,17 +34,17 @@ module "network" {
   ]
 }
 
-/*
+
 module "vm" {
   source        = "./Modules/Vm"
 
-  resourcegroup = azurerm_resource_group.rg.name
+  rg_name       = azurerm_resource_group.rg.name
   location      = azurerm_resource_group.rg.location
   name          = "TestVM1"
-  netid         = module.network.subnetID[0]
+  subnet_id     = module.network.subnetID[0]
   vm_size       = "Standard_B2s"
 }
-*/
+
 
 
 /*
@@ -83,7 +83,7 @@ module "kv" {
 */
 
 
-
+/*
 module "sql" {
   source                = "github.com/TomBramsen/TerraformModules/Modules/MSSQL"
   location              = var.location
@@ -94,7 +94,7 @@ module "sql" {
   privateEndpointSubnet = [  module.network.subnetID[0] ]
 }
 
-
+*/
 ##
 ##     Log Analytics Workspace
 ##
@@ -167,4 +167,18 @@ output "join" {
 
 output "subnet" {
   value = "${module.network.vnetID}/subnets/${var.vNet.subnet_name_test}"
+}
+
+
+output "vm_private_ip_address" {
+  value = module.vm.private_ip_address
+}
+
+output "vm_private_ip_addresses" {
+  value = module.vm.private_ip_addresses
+}
+
+output "vm_psw" {
+  value = module.vm.admin_password
+  sensitive = true
 }
