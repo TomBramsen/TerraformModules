@@ -37,7 +37,7 @@ resource "azurerm_key_vault" "keyvault" {
 resource "azurerm_role_assignment" "keyvaultAccessTrifork" {
    scope                      = azurerm_key_vault.keyvault.id
    role_definition_name       = "Key Vault Secrets User" 
-   principal_id               = module.Global.AADGroup_Read_access_all # "65250d01-dc78-46f6-a232-9966bffac561"  # Trifork
+   principal_id               = module.Global.AADGroup_Read_access_all 
 }
 
 ## The Github SP gets access to update secrets

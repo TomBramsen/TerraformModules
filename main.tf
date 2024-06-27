@@ -36,6 +36,7 @@ module "network" {
 
 
 module "vm" {
+  count         = var.environment == "dev" ? 1 : 0
   source        = "./Modules/Vm"
 
   rg_name       = azurerm_resource_group.rg.name
@@ -65,22 +66,24 @@ module "storage" {
 }
 */
 
-/*
+
 
 module "kv" {
+  count         = var.environment == "dev" ? 1 : 0
   source   = "./Modules/keyvault"
   location = var.location
   rg_name  =  azurerm_resource_group.rg.name
   tags     = var.tags
   name     = "kvsatest32995xx"
-  secrets  = {  "sqlAdmin" =  module.sql.AdminPSW
-                "key3" = "test" }
+  secrets  = {  "vmpsw" = module.vm[0].admin_password  }
   public_access = false
-  depends_on = [ module.sql ]
+ depends_on = [ module.vm ]
 }
+// "sqlAdmin" =  module.sql.AdminPSW
+                //"key3" = "test" }
 
 
-*/
+
 
 
 /*
@@ -171,14 +174,5 @@ output "subnet" {
 
 
 output "vm_private_ip_address" {
-  value = module.vm.private_ip_address
-}
-
-output "vm_private_ip_addresses" {
-  value = module.vm.private_ip_addresses
-}
-
-output "vm_psw" {
-  value = module.vm.admin_password
-  sensitive = true
+  value = module.vm[0].private_ip_address
 }
