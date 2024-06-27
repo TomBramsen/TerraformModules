@@ -1,5 +1,5 @@
 module "Global" {
-  source = "git::ssh://git@github.com/TomBramsen/TerraformModules.git//Modules/Global"
+  source =  "github.com/TomBramsen/TerraformModules/Modules/Global"
 }
 
 resource "azurerm_resource_group" "rg-keyvault" {
