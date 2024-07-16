@@ -14,11 +14,3 @@ resource "azurerm_subnet" "subnets" {
   address_prefixes     = each.value.ip_range
   resource_group_name  = var.rg_name
  }
-
- output "subnetID" {
-  value = [ for subnet in azurerm_subnet.subnets : subnet.id ]
- }
-
- output "vnetID" {
-  value = azurerm_virtual_network.net.id
- }

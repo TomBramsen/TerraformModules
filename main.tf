@@ -35,6 +35,72 @@ module "network" {
 }
 
 
+module "container"  { 
+  source              = "./Modules/ContainerApps" 
+  # version = "0.1.0" 
+  location            = azurerm_resource_group.rg.location
+  name                ="teset23423423"
+  rg_name = azurerm_resource_group.rg.name
+  subnet_id            = module.network.subnetID[2]
+  # rbac_aad_admin_group_object_ids = ["11111111-2222-3333-4444-555555555555"]  
+
+  node_pools = {
+    workload = {
+      name                 = "workloadworkload" #Long name to test the truncate to 12 characters
+      vm_size              = "Standard_D2d_v5"
+      orchestrator_version = "1.28"
+      max_count            = 10
+      min_count            = 2
+      os_sku               = "Ubuntu"
+      mode                 = "User"
+    },
+    ingress = {
+      name                 = "ingress"
+      vm_size              = "Standard_D2d_v5"
+      orchestrator_version = "1.28"
+      max_count            = 4
+      min_count            = 2
+      os_sku               = "Ubuntu"
+      mode                 = "User"
+    }
+  }
+}
+
+/*
+module "aks"  { 
+  source              = "./Modules/KubernetesAKS" 
+  # version = "0.1.0" 
+  location            = azurerm_resource_group.rg.location
+  name                ="teset23423423"
+  rg_name = azurerm_resource_group.rg.name
+  subnet_id            = module.network.subnetID[2]
+  # rbac_aad_admin_group_object_ids = ["11111111-2222-3333-4444-555555555555"]  
+
+  node_pools = {
+    workload = {
+      name                 = "workloadworkload" #Long name to test the truncate to 12 characters
+      vm_size              = "Standard_D2d_v5"
+      orchestrator_version = "1.28"
+      max_count            = 10
+      min_count            = 2
+      os_sku               = "Ubuntu"
+      mode                 = "User"
+    },
+    ingress = {
+      name                 = "ingress"
+      vm_size              = "Standard_D2d_v5"
+      orchestrator_version = "1.28"
+      max_count            = 4
+      min_count            = 2
+      os_sku               = "Ubuntu"
+      mode                 = "User"
+    }
+  }
+}
+*/
+
+
+/*
 module "vm" {
   count         = var.environment == "dev" ? 1 : 0
   source        = "./Modules/Vm"
@@ -45,7 +111,7 @@ module "vm" {
   subnet_id     = module.network.subnetID[0]
   vm_size       = "Standard_B2s"
 }
-
+*/
 
 
 /*
@@ -66,8 +132,7 @@ module "storage" {
 }
 */
 
-
-
+/*
 module "kv" {
   count         = var.environment == "dev" ? 1 : 0
   source   = "./Modules/keyvault"
@@ -82,8 +147,7 @@ module "kv" {
 // "sqlAdmin" =  module.sql.AdminPSW
                 //"key3" = "test" }
 
-
-
+*/
 
 
 /*
@@ -101,7 +165,7 @@ module "sql" {
 ##
 ##     Log Analytics Workspace
 ##
-
+/*
 resource "azurerm_resource_group" "logAnalyticsRg" {
   name                = "logs"
   location            = var.location
@@ -115,6 +179,7 @@ resource "azurerm_log_analytics_workspace" "logAnalytics" {
   retention_in_days   = var.azure_log_analytics_config.retention_in_days
   tags                = var.tags 
 }
+*/
 
 /*
 module "sa_diag" {
@@ -137,6 +202,7 @@ output "metricsCheck" {
 
 */
 
+/*
 output "networkID" {
   value = module.network.subnetID
 }
@@ -176,3 +242,5 @@ output "subnet" {
 output "vm_private_ip_address" {
   value = module.vm[0].private_ip_address
 }
+
+*/

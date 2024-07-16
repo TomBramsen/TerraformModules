@@ -67,9 +67,3 @@ resource "azurerm_key_vault_secret" "secrets" {
    key_vault_id               = azurerm_key_vault.keyvault.id
    depends_on                 = [ azurerm_key_vault.keyvault,  azurerm_role_assignment.keyvaultAccessGithubSP ]
 }
-
-## Return id of keyvault
-output "keyvault_id" {
-  value  = azurerm_key_vault.keyvault.id
-}
-

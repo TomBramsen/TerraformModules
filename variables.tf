@@ -1,4 +1,4 @@
-variable "location"          { default = "westeurope" }
+variable "location"          { default = "northeurope" }
 variable "prefix"            { default = "" }
 variable "environment"       { default = "dev" }
 variable "region"            { default = "neu" }
@@ -130,38 +130,6 @@ variable "acr_scope_map" {
   } 
 }
   
-
-
-# DNS Records that are shared among experiences
-variable "private_dns_records" {
-   type = list(object({
-    name                    = string
-    dev_ip                  = string  
-    prod_ip                 = string
-    }))
-  default = [ {  
-      name              = "rabbitmq"
-      dev_ip            = "10.41.0.5" 
-      prod_ip           = "10.44.0.5"   
-    },
-    {  
-      name              = "otel.monitoring"
-      dev_ip            = "10.41.0.4" 
-      prod_ip           = "10.44.0.4" 
-    },
-    {  
-      name              = "grafana.monitoring"
-      dev_ip            = "10.41.0.4" 
-      prod_ip           = "10.44.0.4"   
-    },
-    {  
-      name              = "memories"
-      dev_ip            = "10.37.128.254" 
-      prod_ip           = "10.37.128.254"   
-    }
-  ]
-}
-
 
 
 
