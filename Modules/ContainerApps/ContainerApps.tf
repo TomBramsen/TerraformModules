@@ -6,164 +6,58 @@ resource "random_string" "acr_suffix" {
   upper   = false
 }
 
-resource "azurerm_container_registry" "this" {
-  location            = var.location
-  name                = "cr${random_string.acr_suffix.result}"
-  resource_group_name = var.rg_name
-  sku                 = "Basic" # "Standard" or  "Premium"
-  tags                = var.tags
+
+
+resource "random_string" "resource_prefix" {
+  length  = 6
+  special = false
+  upper   = false
+  numeric  = false
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = "${var.resource_prefix != "" ? var.resource_prefix : random_string.resource_prefix.result}${var.rg_name}"
+  location = var.location
+  tags     = var.tags
 }
 
 
-
-resource "azurerm_container_app_environment" "managed_environment" {
-  name                           = "Test" # var.managed_environment_name
-  location                       = var.location
-  resource_group_name            = var.rg_name
-  # log_analytics_workspace_id     = var.workspace_id
-  infrastructure_subnet_id       = var.subnet_id
-  internal_load_balancer_enabled = true # var.internal_load_balancer_enabled
-  tags                           = var.tags
-  
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
-}
-
-resource "azurerm_container_app_environment_dapr_component" "dapr_component" {
-  for_each                     = {for component in var.dapr_components: component.name => component}
-
-  name                         = each.key
-  container_app_environment_id = azurerm_container_app_environment.managed_environment.id
-  component_type               = each.value.component_type
-  version                      = each.value.version
-  ignore_errors                = each.value.ignore_errors
-  init_timeout                 = each.value.init_timeout
-  scopes                       = each.value.scopes
-
-  dynamic "metadata" {
-    for_each                   = each.value.metadata != null ? each.value.metadata : []
-    content {
-      name                     = metadata.value.name
-      secret_name              = try(metadata.value.secret_name, null)
-      value                    = try(metadata.value.value, null)
-    }
-  }
-
-  dynamic "secret" {
-    for_each                   = each.value.secret != null ? each.value.secret : []
-    content {
-      name                     = secret.value.name
-      value                    = secret.value.value
-    }
-  }
-}
-
-resource "azurerm_container_app" "container_app" {
-  for_each                     = {for app in var.container_apps: app.name => app}
-
-  name                         = each.key
-  resource_group_name          = var.rg_name
-  container_app_environment_id = azurerm_container_app_environment.managed_environment.id
-  tags                         = var.tags
-  revision_mode                = each.value.revision_mode
-
-  template {
-    dynamic "container" {
-      for_each                   = coalesce(each.value.template.containers, [])
-      content {
-        name                     = container.value.name
-        image                    = container.value.image
-        args                     = try(container.value.args, null)
-        command                  = try(container.value.command, null)
-        cpu                      = container.value.cpu
-        memory                   = container.value.memory
-        
-        dynamic "env" {
-          for_each               = coalesce(container.value.env, [])
-          content {
-            name                 = env.value.name
-            secret_name          = try(env.value.secret_name, null)
-            value                = try(env.value.value, null)
-          }
-        }
-      }
-    }
-    min_replicas                 = try(each.value.template.min_replicas, null)
-    max_replicas                 = try(each.value.template.max_replicas, null)
-    revision_suffix              = try(each.value.template.revision_suffix, null)
-
-    dynamic "volume" {
-      for_each                   = each.value.template.volume != null ? [each.value.template.volume] : []
-      content {
-        name                     = volume.value.name
-        storage_name             = try(volume.value.storage_name, null)
-        storage_type             = try(volume.value.storage_type, null)
-      }
-    }
-  }
-
- dynamic "ingress" {
-    for_each                     = each.value.ingress != null ? [each.value.ingress] : []
-    content {
-      allow_insecure_connections = try(ingress.value.allow_insecure_connections, null)
-      external_enabled           = try(ingress.value.external_enabled, null)
-      target_port                = ingress.value.target_port
-      transport                  = ingress.value.transport
-
-      dynamic "traffic_weight"  {
-        for_each                 = coalesce(ingress.value.traffic_weight, [])
-        content {
-          label                  = traffic_weight.value.label
-          latest_revision        = traffic_weight.value.latest_revision
-          revision_suffix        = traffic_weight.value.revision_suffix
-          percentage             = traffic_weight.value.percentage
-        }
-      }
-    }
-  }
-
-  dynamic "dapr" {
-    for_each                     = each.value.dapr != null ? [each.value.dapr] : []
-    content {
-      app_id                     = dapr.value.app_id
-      app_port                   = dapr.value.app_port
-      app_protocol               = dapr.value.app_protocol
-    }
-  }
-
-  dynamic "secret" {
-    for_each                     = each.value.secrets != null ? [each.value.secrets] : []
-    content {
-      name                       = secret.value.name
-      value                      = secret.value.value
-    }
-  }
-
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
-}
-
-resource "azapi_update_resource" "containerapp" {
-  type        = "Microsoft.App/containerApps@2022-10-01"
-  resource_id = azurerm_container_app.container_app["pythonapp"].id
-
-   body = jsonencode({
-    properties = {
-      configuration = {
-        dapr = {
-          appPort  = null
-        }
-      }
-    }
-  })
-
-  depends_on = [
-    azurerm_container_app.container_app["pythonapp"],
-  ]
+module "container_apps" {
+  source                           = "github.com/TomBramsen/TerraformModules/Modules/container_apps/container_apps.tf?ref=feature/aks"
+  managed_environment_name         = "${var.resource_prefix != "" ? var.resource_prefix : random_string.resource_prefix.result}${var.managed_environment_name}"
+  location                         = var.location
+  resource_group_name              = azurerm_resource_group.rg.name
+  tags                             = var.tags
+  infrastructure_subnet_id         = module.virtual_network.subnet_ids[var.aca_subnet_name] 
+  instrumentation_key              = module.application_insights.instrumentation_key
+  workspace_id                     = module.log_analytics_workspace.id
+  dapr_components                  = [{
+                                      name            = var.dapr_name
+                                      component_type  = var.dapr_component_type
+                                      version         = var.dapr_version
+                                      ignore_errors   = var.dapr_ignore_errors
+                                      init_timeout    = var.dapr_init_timeout
+                                      secret          = [
+                                        {
+                                          name        = "storageaccountkey"
+                                          value       = module.storage_account.primary_access_key
+                                        }
+                                      ]
+                                      metadata: [
+                                        {
+                                          name        = "accountName"
+                                          value       = module.storage_account.name
+                                        },
+                                        {
+                                          name        = "containerName"
+                                          value       = var.container_name
+                                        },
+                                        {
+                                          name        = "accountKey"
+                                          secret_name = "storageaccountkey"
+                                        }
+                                      ]
+                                      scopes          = var.dapr_scopes
+                                     }]
+  container_apps                   = var.container_apps
 }

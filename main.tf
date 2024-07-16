@@ -43,27 +43,10 @@ module "container"  {
   rg_name = azurerm_resource_group.rg.name
   subnet_id            = module.network.subnetID[2]
   # rbac_aad_admin_group_object_ids = ["11111111-2222-3333-4444-555555555555"]  
+  resource_prefix = "ee"
+  
 
-  node_pools = {
-    workload = {
-      name                 = "workloadworkload" #Long name to test the truncate to 12 characters
-      vm_size              = "Standard_D2d_v5"
-      orchestrator_version = "1.28"
-      max_count            = 10
-      min_count            = 2
-      os_sku               = "Ubuntu"
-      mode                 = "User"
-    },
-    ingress = {
-      name                 = "ingress"
-      vm_size              = "Standard_D2d_v5"
-      orchestrator_version = "1.28"
-      max_count            = 4
-      min_count            = 2
-      os_sku               = "Ubuntu"
-      mode                 = "User"
-    }
-  }
+  
 }
 
 /*
