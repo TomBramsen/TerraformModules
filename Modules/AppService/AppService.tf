@@ -25,24 +25,14 @@ resource "azurerm_linux_web_app" "webapp" {
   service_plan_id       = azurerm_service_plan.appserviceplan.id
   depends_on            = [azurerm_service_plan.appserviceplan]
   https_only            = true
-  # public_network_access_enabled = false
-  #site_config { 
-  #  minimum_tls_version = "1.2"
-  #}
 
-
-  site_config {
+site_config {
     always_on      = "true"
   }
-/*
-  app_settings = {
-    "WEBSITES_PORT" = 443 # var.app_port
-  }
-  */
 }
 
 
-
+/*
 #  Deploy code from a public GitHub repo
 resource "azurerm_app_service_source_control" "sourcecontrol" {
   app_id             = azurerm_linux_web_app.webapp.id
@@ -55,4 +45,4 @@ resource "azurerm_app_service_source_control" "sourcecontrol" {
   use_manual_integration = false
   use_mercurial      = false
 }
-
+*/
