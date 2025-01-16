@@ -39,13 +39,13 @@ resource "azurerm_cdn_frontdoor_origin" "my_app_service_origin" {
   count = length(var.endpoints) # for_each = toset(var.endpoints)
   name                           = "origin-${var.endpoints[count.index]}" 
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[count.index].id
-  certificate_name_check_enabled = false
   
+  certificate_name_check_enabled = false
   enabled                        = true
-  host_name                      = "${var.endpoints[count.index]}.azurewebsites.net"
+  host_name                      = var.originheaders[count.index]
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             =  "${var.endpoints[count.index]}.azurewebsites.net"
+  origin_host_header             =  var.originheaders[count.index]
   priority                       = 1
   weight                         = 1000
 }
@@ -66,14 +66,15 @@ resource "azurerm_cdn_frontdoor_route" "my_route" {
 
 
 
-
+/*
 
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "WAFpolicy" {
-  mode                = "Detection"
+  count               = var.applyWAF ? 0  : 1
+  mode                = var.WAFmode
   name                = "WAFpolicy"
   resource_group_name = "bli-shared-app-dz-eu"
-  sku_name            = "Standard_AzureFrontDoor"
+  sku_name            = "Standard_AzureFrontDoor"  # Premium_AzureFrontDoor
   custom_rule {
     action               = "Block"
     name                 = "OnlyAllowSpecificIP"
@@ -89,12 +90,14 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "WAFpolicy" {
 }
 
 
-resource "azurerm_cdn_frontdoor_security_policy" "res-12" {
+resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
+    count               = var.applyWAF ? 0  : 1
+
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
   name                     = "fd-securitypol-01"
   security_policies {
     firewall {
-      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.WAFpolicy.id
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.WAFpolicy[0].id
       association {
         patterns_to_match = ["/*"]
         domain {
@@ -112,4 +115,4 @@ resource "azurerm_cdn_frontdoor_security_policy" "res-12" {
 }
 
 
-
+*/
