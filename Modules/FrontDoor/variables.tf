@@ -6,6 +6,7 @@ variable "location" {
 
 variable "tags" {
   type         = map(any)
+  default = {  }
 }
 
 variable "rg_name" {
@@ -18,6 +19,12 @@ variable "name" {
    type         = string
 }
 
+variable "endpoints" {
+   default      = ["endpoint-frontdoor"] 
+   type         = list(string)
+   description = "Frontdoor Domains"
+}
+
 variable "sku_name" {
   type = string
   default = "Standard_AzureFrontDoor"
@@ -28,10 +35,6 @@ variable "front_door_origin_group_name" {
   type = string
 }
 
-variable "default_hostname" {
-   type = string
-  
-}
 variable "endpoint_name" {
    default      = "afd-Endpoint"
    type         = string
@@ -59,4 +62,9 @@ variable "front_door_backend_pool_name" {
 
 variable "backend_address" {
   default = "tv2oj.dk"
+}
+
+variable "WAFpolicy" {
+  type = string
+  default = ""
 }
