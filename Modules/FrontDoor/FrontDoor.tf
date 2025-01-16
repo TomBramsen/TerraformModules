@@ -9,13 +9,16 @@ resource "azurerm_cdn_frontdoor_profile" "my_front_door" {
   sku_name            = var.sku_name
 }
 
-resource "azurerm_cdn_frontdoor_endpoint" "my_endpoint" {
-  name                     = "sdfadsfasdf"        #############
+resource "azurerm_cdn_frontdoor_endpoint" "frontdoor_endpoints" {
+   count = length(var.endpoints)
+  name                     = "${var.endpoints[count.index]}" 
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
 }
 
+
 resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
-  name                     = "dsfsadfs" ### var.front_door_origin_group_name
+   count = length(var.endpoints) # for_each = toset(var.endpoints)
+  name                     = "origingroup-${var.endpoints[count.index]}" 
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
   session_affinity_enabled = true
 
@@ -25,7 +28,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
   }
 
   health_probe {
-    path                = "/"
+    path                = "/healtz"
     request_type        = "HEAD"
     protocol            = "Https"
     interval_in_seconds = 100
@@ -33,24 +36,26 @@ resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "my_app_service_origin" {
-  name                          = "asdfasdfsadf" ##########local.front_door_origin_name
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
-
+  count = length(var.endpoints) # for_each = toset(var.endpoints)
+  name                           = "origin-${var.endpoints[count.index]}" 
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[count.index].id
+  certificate_name_check_enabled = false
+  
   enabled                        = true
-  host_name                      = var.default_hostname
+  host_name                      = "${var.endpoints[count.index]}.azurewebsites.net"
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             = var.default_hostname
+  origin_host_header             =  "${var.endpoints[count.index]}.azurewebsites.net"
   priority                       = 1
   weight                         = 1000
-  certificate_name_check_enabled = false
 }
 
 resource "azurerm_cdn_frontdoor_route" "my_route" {
-  name                          = "asdfasdf" ###########local.front_door_route_name
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.my_app_service_origin.id]
+  count = length(var.endpoints)
+  name = "route-${var.endpoints[count.index]}" 
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.frontdoor_endpoints[count.index].id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[count.index].id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.my_app_service_origin[count.index].id]
 
   supported_protocols    = ["Http", "Https"]
   patterns_to_match      = ["/*"]
@@ -63,6 +68,48 @@ resource "azurerm_cdn_frontdoor_route" "my_route" {
 
 
 
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "WAFpolicy" {
+  mode                = "Detection"
+  name                = "WAFpolicy"
+  resource_group_name = "bli-shared-app-dz-eu"
+  sku_name            = "Standard_AzureFrontDoor"
+  custom_rule {
+    action               = "Block"
+    name                 = "OnlyAllowSpecificIP"
+    priority             = 1000
+    rate_limit_threshold = 100
+    type                 = "MatchRule"
+    match_condition {
+     match_values       = [  "217.74.148.94"   ]
+     operator           = "IPMatch" 
+     match_variable     = "RemoteAddr"
+  }
+}
+}
+
+
+resource "azurerm_cdn_frontdoor_security_policy" "res-12" {
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
+  name                     = "fd-securitypol-01"
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.WAFpolicy.id
+      association {
+        patterns_to_match = ["/*"]
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.frontdoor_endpoints[0].id
+        }
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.frontdoor_endpoints[1].id
+        }
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.frontdoor_endpoints[2].id
+        }
+      }
+    }
+  }
+}
 
 
 
