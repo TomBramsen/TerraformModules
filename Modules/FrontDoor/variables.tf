@@ -14,6 +14,12 @@ variable "rg_name" {
   description  = "Name of resource group"
 }
 
+
+variable "prefix" {
+  type         = string  
+  default      = ""
+}
+
 variable "name" {
    default      = "afd-frontdoor" // "afd-${lower(random_id.front_door_name.hex)}"
    type         = string
